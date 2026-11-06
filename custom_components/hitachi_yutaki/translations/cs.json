@@ -1,0 +1,95 @@
+{
+  "entity": {
+    "sensor": {
+      "operation_state": {
+        "state": {
+          "operation_state_off": "Vypnuto",
+          "operation_state_cool_demand_off": "Chlazení – bez poptávky",
+          "operation_state_cool_thermo_off": "Chlazení – termostat vyp.",
+          "operation_state_cool_thermo_on": "Chlazení – termostat zap.",
+          "operation_state_heat_demand_off": "Topení – bez poptávky",
+          "operation_state_heat_thermo_off": "Topení – termostat vyp.",
+          "operation_state_heat_thermo_on": "Topení – termostat zap.",
+          "operation_state_dhw_off": "TUV – vypnuto",
+          "operation_state_dhw_on": "TUV – zapnuto",
+          "operation_state_pool_off": "Bazén – vypnuto",
+          "operation_state_pool_on": "Bazén – zapnuto",
+          "operation_state_alarm": "Alarm",
+          "operation_state_unknown": "Neznámý"
+        }
+      },
+      "dhw_demand_mode": {
+        "state": {
+          "standard": "Standard",
+          "high_demand": "Vysoká poptávka"
+        }
+      },
+      "defrost_state_raw": {
+        "state": {
+          "no_defrosting": "Neprobíhá",
+          "defrosting": "Probíhá"
+        }
+      }
+    },
+    "climate": {
+      "climate": {
+        "state": {
+          "off": "Vypnuto",
+          "heat": "Topení",
+          "cool": "Chlazení",
+          "auto": "Auto",
+          "idle": "Nečinný",
+          "defrost": "Odmrazování"
+        },
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "eco": "ECO",
+              "comfort": "Komfort"
+            }
+          }
+        }
+      },
+      "dhw_climate": {
+        "state": {
+          "off": "Vypnuto",
+          "heat": "Topení"
+        }
+      }
+    },
+    "water_heater": {
+      "dhw": {
+        "state": {
+          "off": "Vypnuto",
+          "standard": "Standard",
+          "high_demand": "Vysoká poptávka"
+        }
+      }
+    },
+    "select": {
+      "circuit1_otc_calculation_method_heating": {
+        "state": {
+          "disabled": "Vypnuto",
+          "points": "Body",
+          "gradient": "Sklon",
+          "fix": "Pevná"
+        }
+      },
+      "circuit2_otc_calculation_method_heating": {
+        "state": {
+          "disabled": "Vypnuto",
+          "points": "Body",
+          "gradient": "Sklon",
+          "fix": "Pevná"
+        }
+      },
+      "operation_mode_heat": {
+        "state": {
+          "heat": "Topení",
+          "cool": "Chlazení",
+          "auto": "Auto"
+        }
+      }
+    }
+  }
+}
