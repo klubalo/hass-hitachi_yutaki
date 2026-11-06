@@ -386,6 +386,56 @@ REGISTER_POOL = {
     ),
 }
 
+# --- ComAp fork: registers exposed by the previous native YAML setup that
+# upstream does not surface. Every address below already falls inside a block
+# read for the base keys (1050-1098 / 1200-1231), so exposing these costs no
+# additional Modbus transactions. Grouped under the control unit for reads.
+REGISTER_COMAP_EXTRA = {
+    "circuit1_wireless_target_temp": RegisterDefinition(
+        1062, deserializer=convert_from_tenths
+    ),
+    "circuit1_wireless_current_temp": RegisterDefinition(
+        1063, deserializer=convert_from_tenths
+    ),
+    "circuit2_wireless_target_temp": RegisterDefinition(
+        1074, deserializer=convert_from_tenths
+    ),
+    "circuit2_wireless_current_temp": RegisterDefinition(
+        1075, deserializer=convert_from_tenths
+    ),
+    "water_outlet_unit_temp": RegisterDefinition(
+        1093, deserializer=convert_signed_16bit
+    ),
+    # ComAp fork: on the S Combi, registers 1224/1225 (labelled "secondary
+    # compressor" in the S80 map) actually carry the DHW tank upper/lower
+    # temperatures — used by the site's DHW model. Read them regardless of
+    # profile (they fall inside the 1200-1231 block, so no extra reads).
+    "dhw_tank_upper_temp": RegisterDefinition(
+        1224, deserializer=convert_signed_16bit
+    ),
+    "dhw_tank_lower_temp": RegisterDefinition(
+        1225, deserializer=convert_signed_16bit
+    ),
+    "block_menu": RegisterDefinition(1086),
+    "bms_alarm": RegisterDefinition(1087),
+    "software_pcb": RegisterDefinition(1095),
+    "software_lcd": RegisterDefinition(1096),
+    "unit_capacity": RegisterDefinition(1097),
+    "outdoor_average_temp": RegisterDefinition(
+        1201, deserializer=convert_signed_16bit
+    ),
+    "second_ambient_temp": RegisterDefinition(
+        1202, deserializer=convert_signed_16bit
+    ),
+    "second_ambient_average_temp": RegisterDefinition(
+        1203, deserializer=convert_signed_16bit
+    ),
+    "cause_of_stoppage": RegisterDefinition(1213),
+    "capacity_data": RegisterDefinition(1215),
+    "mixing_valve_position": RegisterDefinition(1216),
+    "defrost_state_raw": RegisterDefinition(1217),
+}
+
 # All registers in a single map for easy lookup
 ALL_REGISTERS = {
     **REGISTER_GATEWAY,
@@ -396,6 +446,7 @@ ALL_REGISTERS = {
     **REGISTER_CIRCUIT_2,
     **REGISTER_DHW,
     **REGISTER_POOL,
+    **REGISTER_COMAP_EXTRA,
 }
 
 # Keys for registers that can be written to
@@ -454,8 +505,12 @@ class AtwMbs02RegisterMap(HitachiRegisterMap):
 
     @property
     def control_unit_keys(self) -> list[str]:
-        """Return the list of control unit keys."""
-        return list(REGISTER_CONTROL_UNIT.keys())
+        """Return the list of control unit keys.
+
+        Includes the ComAp extra registers so they are read every cycle
+        (they share the base-key blocks, so no extra Modbus transactions).
+        """
+        return list(REGISTER_CONTROL_UNIT.keys()) + list(REGISTER_COMAP_EXTRA.keys())
 
     @property
     def primary_compressor_keys(self) -> list[str]:
