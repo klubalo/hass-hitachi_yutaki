@@ -414,29 +414,86 @@ class ModbusApiClient(HitachiApiClient):
             return False
         return True
 
-    async def _read_register(
-        self, definition: RegisterDefinition, device_param: str
-    ) -> Any:
-        """Read and deserialize a single register.
+    # --- Block-read tuning (ComAp fork) ------------------------------------
+    # Address ranges proven readable as INPUT registers (FC04) in contiguous
+    # blocks on the ATW-MBS-02 gateway. These mirror the working native HA
+    # modbus config (input blocks 1050-1069, 1070-1098, 1200-1231). Addresses
+    # OUTSIDE these ranges (e.g. circuit thermostat state 1010/1021) are read
+    # individually as HOLDING registers (FC03), exactly as upstream does, so
+    # every read stays on the function code proven for that address.
+    _PROVEN_INPUT_RANGES = ((1050, 1098), (1200, 1231))
+    _MAX_BLOCK_COUNT = 64  # registers per request (well under Modbus 125 limit)
+    _MAX_BLOCK_GAP = 8  # merge into one block when the gap is at most this many
 
-        Returns the deserialized value, _SENTINEL_FILTERED when the value is a
-        gateway sentinel (unavailable sensor/module), or None when no fresh
-        value is available. None covers both a Modbus read error
-        (``result.isError()``) and a deserializer that maps a sensor-error raw
-        value (e.g. 0xFFFF) to ``None``. Callers must treat a remaining None
-        (after any fallback) as "no value" and clear the stored reading rather
-        than retaining a stale one (see :meth:`read_values`, issue #320).
+    def _in_input_range(self, addr: int) -> bool:
+        """Return True if addr is proven readable via an input-register block."""
+        return any(lo <= addr <= hi for lo, hi in self._PROVEN_INPUT_RANGES)
+
+    def _plan_input_blocks(self, addresses: set[int]) -> list[tuple[int, int]]:
+        """Group in-range addresses into (start, count) input-register blocks.
+
+        Consecutive addresses are merged into one block while the gap to the
+        next address is <= _MAX_BLOCK_GAP and the block stays <= _MAX_BLOCK_COUNT.
+        This turns dozens of single-register reads into a handful of block reads.
+        """
+        addrs = sorted(a for a in addresses if self._in_input_range(a))
+        if not addrs:
+            return []
+        blocks: list[tuple[int, int]] = []
+        start = prev = addrs[0]
+        for a in addrs[1:]:
+            if a - prev <= self._MAX_BLOCK_GAP and (a - start + 1) <= self._MAX_BLOCK_COUNT:
+                prev = a
+            else:
+                blocks.append((start, prev - start + 1))
+                start = prev = a
+        blocks.append((start, prev - start + 1))
+        return blocks
+
+    async def _read_input_block(
+        self, start: int, count: int, device_param: str
+    ) -> list[int] | None:
+        """Read a contiguous block of INPUT registers (FC04).
+
+        Returns the raw register list, or None on a Modbus error.
         """
         result = await self._hass.async_add_executor_job(
-            lambda addr=definition.address, param=device_param: (
-                self._client.read_holding_registers(
-                    address=addr, count=1, **{param: self._slave}
+            lambda s=start, c=count, param=device_param: (
+                self._client.read_input_registers(
+                    address=s, count=c, **{param: self._slave}
                 )
             )
         )
         if result.isError():
             return None
-        value = result.registers[0]
+        return list(result.registers)
+
+    async def _read_holding_one(self, addr: int, device_param: str) -> int | None:
+        """Read a single HOLDING register (FC03). Returns raw value or None."""
+        result = await self._hass.async_add_executor_job(
+            lambda a=addr, param=device_param: (
+                self._client.read_holding_registers(
+                    address=a, count=1, **{param: self._slave}
+                )
+            )
+        )
+        if result.isError():
+            return None
+        return result.registers[0]
+
+    def _decode_register(self, definition: RegisterDefinition, raw: int | None) -> Any:
+        """Deserialize a raw register value using the register definition.
+
+        Returns the deserialized value, _SENTINEL_FILTERED when the value is a
+        gateway sentinel (unavailable sensor/module), or None when no fresh
+        value is available (raw is None, i.e. a read error, or the deserializer
+        maps a sensor-error raw value such as 0xFFFF to None). Callers must
+        treat a remaining None (after any fallback) as "no value" and clear the
+        stored reading rather than retaining a stale one (issue #320).
+        """
+        if raw is None:
+            return None
+        value = raw
         if definition.deserializer:
             value = definition.deserializer(value)
         if (
@@ -450,12 +507,20 @@ class ModbusApiClient(HitachiApiClient):
     async def read_values(self, keys: list[str]) -> ReadResult:
         """Fetch data from the heat pump for the given keys.
 
-        Always performs a preflight read of ``system_state``. If the gateway
-        reports an unhealthy state (initializing or desynchronized), returns
-        ``ReadResult.GATEWAY_NOT_READY`` WITHOUT reading any of the requested
-        keys — only ``system_state`` is populated in ``_data``. Callers must
-        check the return value before consuming ``read_value()`` output. See
-        :class:`ReadResult` for the full contract.
+        Reads are batched: addresses in the proven INPUT-register ranges are
+        fetched in a handful of contiguous block reads (FC04); the few
+        out-of-range control registers are read individually as HOLDING
+        registers (FC03). This replaces upstream's one-request-per-register
+        loop and cuts Modbus transactions per cycle from ~60 to a handful,
+        which greatly reduces the per-cycle failure surface on slow/flaky
+        gateways that allow only a single TCP connection.
+
+        Always performs a preflight read of ``system_state`` (the block that
+        contains it is read first). If the gateway reports an unhealthy state
+        (initializing or desynchronized), returns ``ReadResult.GATEWAY_NOT_READY``
+        WITHOUT populating the requested keys — only ``system_state`` is stored
+        in ``_data``. Callers must check the return value before consuming
+        ``read_value()`` output. See :class:`ReadResult` for the full contract.
         """
         retry_count = 0
         max_read_retries = 1  # Only retry once after reconnection
@@ -470,24 +535,47 @@ class ModbusApiClient(HitachiApiClient):
                     key: all_regs[key] for key in keys if key in all_regs
                 }
 
-                # Always perform a preflight check
-                system_state_addr = all_regs["system_state"].address
-                preflight_result = await self._hass.async_add_executor_job(
-                    lambda param=device_param, addr=system_state_addr: (
-                        self._client.read_holding_registers(
-                            address=addr,
-                            count=1,
-                            **{param: self._slave},
-                        )
-                    )
-                )
-                if preflight_result.isError():
-                    raise ModbusException("Preflight check failed")
+                # Collect every address needed this cycle: each register's
+                # address, its fallback address (if any), and system_state.
+                system_state_def = all_regs["system_state"]
+                needed: set[int] = {system_state_def.address}
+                for definition in registers_to_read.values():
+                    needed.add(definition.address)
+                    if definition.fallback:
+                        needed.add(definition.fallback.address)
 
-                raw_state = preflight_result.registers[0]
+                # Plan contiguous input-register blocks; addresses outside the
+                # proven input ranges are read as individual holding registers.
+                input_blocks = self._plan_input_blocks(needed)
+                holding_addrs = sorted(
+                    a for a in needed if not self._in_input_range(a)
+                )
+
+                # raw address -> value cache for this cycle
+                cache: dict[int, int | None] = {}
+
+                # --- Preflight: read the block containing system_state first ---
+                ss_addr = system_state_def.address
+                ss_block = next(
+                    (b for b in input_blocks if b[0] <= ss_addr < b[0] + b[1]),
+                    None,
+                )
+                if ss_block is not None:
+                    regs = await self._read_input_block(*ss_block, device_param)
+                    if regs is None:
+                        raise ModbusException("Preflight block read failed")
+                    for offset, val in enumerate(regs):
+                        cache[ss_block[0] + offset] = val
+                else:
+                    # system_state lies outside the input ranges (other variants)
+                    raw = await self._read_holding_one(ss_addr, device_param)
+                    if raw is None:
+                        raise ModbusException("Preflight check failed")
+                    cache[ss_addr] = raw
+
+                raw_state = cache[ss_addr]
 
                 # Always store deserialized value for entity consumption
-                system_state_def = all_regs["system_state"]
                 if system_state_def.deserializer:
                     self._data["system_state"] = system_state_def.deserializer(
                         raw_state
@@ -544,14 +632,37 @@ class ModbusApiClient(HitachiApiClient):
                     self._gateway_not_ready_since = None
                     self._gateway_not_ready_last_log = 0.0
 
+                # --- Read the remaining input blocks + holding singletons ---
+                for block in input_blocks:
+                    if block is ss_block:
+                        continue
+                    regs = await self._read_input_block(*block, device_param)
+                    if regs is None:
+                        raise ModbusException(
+                            f"Input block read failed at {block[0]} (count {block[1]})"
+                        )
+                    for offset, val in enumerate(regs):
+                        cache[block[0] + offset] = val
+
+                for addr in holding_addrs:
+                    if addr in cache:
+                        continue
+                    # A single holding read error clears just that entity
+                    # (None), it does not abort the whole cycle.
+                    cache[addr] = await self._read_holding_one(addr, device_param)
+
+                # --- Decode each requested register from the cache ---
                 for name, definition in registers_to_read.items():
-                    value = await self._read_register(definition, device_param)
+                    value = self._decode_register(
+                        definition, cache.get(definition.address)
+                    )
                     # Fallback on any None (read error or a sensor-error raw
                     # value such as 0xFFFF deserialized to None), but not on
                     # sentinel (sentinel = module known-absent, no point trying)
                     if value is None and definition.fallback:
-                        value = await self._read_register(
-                            definition.fallback, device_param
+                        value = self._decode_register(
+                            definition.fallback,
+                            cache.get(definition.fallback.address),
                         )
                     if self._is_shadowed_by_pending_write(name, value):
                         continue
