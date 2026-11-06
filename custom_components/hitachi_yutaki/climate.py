@@ -19,6 +19,7 @@ from .const import (
 
 # Import builder from domain entity
 from .entities.circuit import build_circuit_climate
+from .entities.dhw.climate import build_dhw_climate
 
 SERVICE_SET_ROOM_TEMPERATURE = "set_room_temperature"
 
@@ -45,6 +46,11 @@ async def async_setup_entry(
     )
     if climate2:
         entities.append(climate2)
+
+    # ComAp fork: DHW as a climate entity (parity with old Modbus climate)
+    dhw_climate = build_dhw_climate(coordinator, entry.entry_id)
+    if dhw_climate:
+        entities.append(dhw_climate)
 
     async_add_entities(entities)
 
