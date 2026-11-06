@@ -61,9 +61,7 @@ class HitachiYutakiDhwClimate(
         """Initialize the DHW climate entity."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._attr_unique_id = (
-            f"{coordinator.config_entry.entry_id}_dhw_climate"
-        )
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_dhw_climate"
         self._attr_device_info = device_info
         overrides = coordinator.profile.entity_overrides.get("dhw", {})
         self._attr_min_temp = overrides.get("min_temp", 30.0)

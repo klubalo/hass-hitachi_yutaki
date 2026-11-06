@@ -410,23 +410,18 @@ REGISTER_COMAP_EXTRA = {
     # compressor" in the S80 map) actually carry the DHW tank upper/lower
     # temperatures — used by the site's DHW model. Read them regardless of
     # profile (they fall inside the 1200-1231 block, so no extra reads).
-    "dhw_tank_upper_temp": RegisterDefinition(
-        1224, deserializer=convert_signed_16bit
-    ),
-    "dhw_tank_lower_temp": RegisterDefinition(
-        1225, deserializer=convert_signed_16bit
-    ),
+    "dhw_tank_upper_temp": RegisterDefinition(1224, deserializer=convert_signed_16bit),
+    "dhw_tank_lower_temp": RegisterDefinition(1225, deserializer=convert_signed_16bit),
     "block_menu": RegisterDefinition(1086),
     "bms_alarm": RegisterDefinition(1087),
-    "software_pcb": RegisterDefinition(1095),
-    "software_lcd": RegisterDefinition(1096),
+    # NOTE: software_pcb (1095) / software_lcd (1096) are deliberately NOT
+    # redefined here. Upstream >= 2.3.0 reads them in REGISTER_CONTROL_UNIT
+    # with a 0xFFFF sentinel filter (a garbage read is not a version number).
+    # Redefining them here would override that filter, because
+    # ALL_REGISTERS merges REGISTER_COMAP_EXTRA last.
     "unit_capacity": RegisterDefinition(1097),
-    "outdoor_average_temp": RegisterDefinition(
-        1201, deserializer=convert_signed_16bit
-    ),
-    "second_ambient_temp": RegisterDefinition(
-        1202, deserializer=convert_signed_16bit
-    ),
+    "outdoor_average_temp": RegisterDefinition(1201, deserializer=convert_signed_16bit),
+    "second_ambient_temp": RegisterDefinition(1202, deserializer=convert_signed_16bit),
     "second_ambient_average_temp": RegisterDefinition(
         1203, deserializer=convert_signed_16bit
     ),
@@ -497,6 +492,18 @@ SYSTEM_STATE_ISSUES = {
 
 class AtwMbs02RegisterMap(HitachiRegisterMap):
     """Register map for the ATW-MBS-02 gateway."""
+
+    @property
+    def input_read_ranges(self) -> tuple[tuple[int, int], ...]:
+        """Return the address ranges proven readable as INPUT registers (FC04).
+
+        Verified on the ComAp ATW-MBS-02 (gen2) gateway: these ranges answer
+        contiguous block reads, which mirror the working native HA modbus
+        config (input blocks 1050-1069, 1070-1098, 1200-1231). Addresses
+        outside them (e.g. circuit thermostat state 1010/1021) are read
+        individually as HOLDING registers (FC03), exactly as upstream does.
+        """
+        return ((1050, 1098), (1200, 1231))
 
     @property
     def gateway_keys(self) -> list[str]:

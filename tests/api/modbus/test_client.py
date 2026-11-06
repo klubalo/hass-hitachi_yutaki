@@ -14,7 +14,6 @@ from custom_components.hitachi_yutaki.api.modbus import ModbusApiClient
 from custom_components.hitachi_yutaki.api.modbus.registers import RegisterDefinition
 from custom_components.hitachi_yutaki.api.modbus.registers.atw_mbs_02 import (
     AtwMbs02RegisterMap,
-    convert_signed_16bit,
 )
 from custom_components.hitachi_yutaki.api.modbus.registers.atw_mbs_02_pre2016 import (
     AtwMbs02Pre2016RegisterMap,
@@ -48,6 +47,7 @@ def api_client(mock_hass, mock_client):
         api._hass = mock_hass
         api._client = mock_client
         api._slave = 1
+        api._register_map = AtwMbs02RegisterMap()
         api._pending_writes = {}
         return api
 
@@ -195,123 +195,241 @@ def _make_modbus_error():
     return result
 
 
+def _make_modbus_result_list(values: list[int]):
+    """Create a mock Modbus result carrying a block of register values."""
+    result = MagicMock()
+    result.isError.return_value = False
+    result.registers = list(values)
+    return result
+
+
+class _FakeGateway:
+    """Address-level fake of the heat pump gateway.
+
+    The fork reads registers in blocks (FC04) plus a few holding singletons
+    (FC03), so the transport can no longer be mocked by call order. This fake
+    serves both function codes from one address -> raw value map, which lets a
+    test state the intent ("register 1094 is 0") instead of the call sequence.
+
+    Addresses that are not in the map read as 0. Addresses listed in
+    ``errors`` answer with a Modbus error, which is how a failing block read
+    is injected.
+    """
+
+    def __init__(
+        self,
+        values: dict[int, int] | None = None,
+        errors: set[int] | None = None,
+    ) -> None:
+        """Store the register values and the addresses that fail."""
+        self.values = dict(values or {})
+        self.errors = set(errors or ())
+        self.calls: list[tuple[str, int, int]] = []
+        self.writes: list[tuple[int, int]] = []
+
+    def _read(self, kind: str, address: int, count: int):
+        """Answer a register read from the address map."""
+        self.calls.append((kind, address, count))
+        if any(a in self.errors for a in range(address, address + count)):
+            return _make_modbus_error()
+        return _make_modbus_result_list(
+            [self.values.get(address + offset, 0) for offset in range(count)]
+        )
+
+    def read_input_registers(self, address, count=1, **kwargs):
+        """Answer a block read (FC04)."""
+        return self._read("fc04", address, count)
+
+    def read_holding_registers(self, address, count=1, **kwargs):
+        """Answer a holding register read (FC03)."""
+        return self._read("fc03", address, count)
+
+    def write_register(self, address, value, **kwargs):
+        """Accept a register write (FC06)."""
+        self.writes.append((address, value))
+        return _make_modbus_result(0)
+
+    def is_socket_open(self):
+        """Report an open socket."""
+        return True
+
+    def close(self):
+        """Close the (fake) connection."""
+        return True
+
+    def block_reads(self) -> list[tuple[int, int]]:
+        """Return the (address, count) of every block read (FC04)."""
+        return [
+            (address, count) for kind, address, count in self.calls if kind == "fc04"
+        ]
+
+
 @pytest.mark.asyncio
-async def test_read_register_returns_deserialized_value(api_client, mock_client):
-    """Test _read_register returns deserialized value on success."""
-    mock_client.read_holding_registers.return_value = _make_modbus_result(350)
+async def test_read_input_block_returns_raw_values(api_client, mock_client):
+    """A block read returns the raw register list of the requested window."""
+    mock_client.read_input_registers.return_value = _make_modbus_result_list(
+        [10, 20, 30]
+    )
+
+    values = await api_client._read_input_block(1050, 3, "slave")
+
+    assert values == [10, 20, 30]
+    kwargs = mock_client.read_input_registers.call_args.kwargs
+    assert kwargs["address"] == 1050
+    assert kwargs["count"] == 3
+
+
+@pytest.mark.asyncio
+async def test_read_input_block_returns_none_on_error(api_client, mock_client):
+    """A Modbus error on a block read yields None, not an exception."""
+    mock_client.read_input_registers.return_value = _make_modbus_error()
+
+    assert await api_client._read_input_block(1050, 3, "slave") is None
+
+
+@pytest.mark.asyncio
+async def test_read_holding_one_returns_value(api_client, mock_client):
+    """A holding singleton is read one register at a time (FC03)."""
+    mock_client.read_holding_registers.return_value = _make_modbus_result(42)
+
+    assert await api_client._read_holding_one(1010, "slave") == 42
+    kwargs = mock_client.read_holding_registers.call_args.kwargs
+    assert kwargs["address"] == 1010
+    assert kwargs["count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_read_holding_one_returns_none_on_error(api_client, mock_client):
+    """A Modbus error on a holding singleton yields None."""
+    mock_client.read_holding_registers.return_value = _make_modbus_error()
+
+    assert await api_client._read_holding_one(1010, "slave") is None
+
+
+def test_decode_register_deserializes_value(api_client):
+    """The deserializer of the definition converts the raw register value."""
     definition = RegisterDefinition(1200, deserializer=lambda v: v / 10.0)
 
-    value = await api_client._read_register(definition, "slave")
-
-    assert value == 35.0
+    assert api_client._decode_register(definition, 350) == 35.0
 
 
-@pytest.mark.asyncio
-async def test_read_register_returns_raw_value_without_deserializer(
-    api_client, mock_client
-):
-    """Test _read_register returns raw value when no deserializer is set."""
-    mock_client.read_holding_registers.return_value = _make_modbus_result(42)
+def test_decode_register_returns_raw_value_without_deserializer(api_client):
+    """Without a deserializer the raw register value is returned as is."""
     definition = RegisterDefinition(1000)
 
-    value = await api_client._read_register(definition, "slave")
-
-    assert value == 42
+    assert api_client._decode_register(definition, 42) == 42
 
 
-@pytest.mark.asyncio
-async def test_read_register_returns_none_on_error(api_client, mock_client):
-    """Test _read_register returns None on Modbus read error."""
-    mock_client.read_holding_registers.return_value = _make_modbus_error()
+def test_decode_register_returns_none_for_missing_value(api_client):
+    """A failed read (no raw value at all) decodes to None."""
     definition = RegisterDefinition(1200)
 
-    value = await api_client._read_register(definition, "slave")
-
-    assert value is None
+    assert api_client._decode_register(definition, None) is None
 
 
-@pytest.mark.asyncio
-async def test_fallback_used_when_primary_returns_none(api_client, mock_client):
-    """Test that fallback register is read when primary deserializes to None."""
-    # Primary returns 0xFFFF (sensor error) → convert_signed_16bit returns None
-    # Fallback returns valid value
-    primary_result = _make_modbus_result(0xFFFF)
-    fallback_result = _make_modbus_result(350)  # 35.0°C as signed 16-bit
+def test_decode_register_filters_sentinel_value(api_client):
+    """A gateway sentinel is reported as filtered, not as a value."""
+    definition = RegisterDefinition(1089, sentinel_values=frozenset({0xFFFF}))
 
-    mock_client.read_holding_registers.side_effect = [primary_result, fallback_result]
-
-    definition = RegisterDefinition(
-        1200,
-        deserializer=convert_signed_16bit,
-        fallback=RegisterDefinition(1093, deserializer=convert_signed_16bit),
+    assert (
+        api_client._decode_register(definition, 0xFFFF) is api_client._SENTINEL_FILTERED
     )
 
-    # Simulate the read_values fallback logic
-    value = await api_client._read_register(definition, "slave")
-    if value is None and definition.fallback:
-        value = await api_client._read_register(definition.fallback, "slave")
 
-    assert value == 350
-    assert mock_client.read_holding_registers.call_count == 2
+# --- Block planning (fork-specific) ---
 
 
+def test_plan_input_blocks_merges_near_addresses(api_client):
+    """Addresses within the merge gap become a single block."""
+    assert api_client._plan_input_blocks({1091, 1092, 1094}) == [(1091, 4)]
+
+
+def test_plan_input_blocks_splits_on_large_gap(api_client):
+    """A gap wider than the merge limit starts a new block."""
+    assert api_client._plan_input_blocks({1094, 1200}) == [(1094, 1), (1200, 1)]
+
+
+def test_plan_input_blocks_skips_addresses_outside_proven_ranges(api_client):
+    """Only addresses proven for FC04 are planned as input blocks."""
+    assert api_client._plan_input_blocks({1010, 1021, 1094}) == [(1094, 1)]
+
+
+def test_plan_input_blocks_respects_max_block_count(api_client):
+    """A block never exceeds the Modbus-safe register count."""
+    api_client._register_map = _WideRangeMap()
+    addresses = set(range(1050, 1050 + 70))
+
+    blocks = api_client._plan_input_blocks(addresses)
+
+    assert blocks == [(1050, 64), (1114, 6)]
+    assert all(count <= api_client._MAX_BLOCK_COUNT for _, count in blocks)
+
+
+class _WideRangeMap:
+    """Register map stub declaring a wide proven FC04 range."""
+
+    input_read_ranges = ((1050, 1200),)
+
+
+# --- Fallback register handling ---
+
+
+@patch("custom_components.hitachi_yutaki.api.modbus.ir")
 @pytest.mark.asyncio
-async def test_fallback_not_used_when_primary_succeeds(api_client, mock_client):
-    """Test that fallback is NOT read when primary returns a valid value."""
-    mock_client.read_holding_registers.return_value = _make_modbus_result(350)
+async def test_fallback_used_when_primary_returns_none(
+    _mock_ir, mock_hass, mock_client
+):
+    """A sensor-error primary (0xFFFF) falls back to the fallback register."""
+    api = _make_preflight_api_client(mock_hass, mock_client)
+    api._client = _FakeGateway({1094: 0, 1200: 0xFFFF, 1093: 350})
 
-    definition = RegisterDefinition(
-        1200,
-        deserializer=lambda v: v,
-        fallback=RegisterDefinition(1093, deserializer=lambda v: v),
-    )
+    result = await api.read_values(["water_outlet_temp"])
 
-    value = await api_client._read_register(definition, "slave")
-    if value is None and definition.fallback:
-        value = await api_client._read_register(definition.fallback, "slave")
-
-    assert value == 350
-    # Only one read — fallback was never called
-    assert mock_client.read_holding_registers.call_count == 1
+    assert result == ReadResult.SUCCESS
+    assert api._data["water_outlet_temp"] == 350
 
 
+@patch("custom_components.hitachi_yutaki.api.modbus.ir")
 @pytest.mark.asyncio
-async def test_fallback_used_when_primary_read_errors(api_client, mock_client):
-    """Test that fallback is read when primary has a Modbus read error."""
-    primary_result = _make_modbus_error()
-    fallback_result = _make_modbus_result(280)
+async def test_fallback_not_used_when_primary_succeeds(
+    _mock_ir, mock_hass, mock_client
+):
+    """A valid primary wins over the fallback register."""
+    api = _make_preflight_api_client(mock_hass, mock_client)
+    api._client = _FakeGateway({1094: 0, 1200: 280, 1093: 350})
 
-    mock_client.read_holding_registers.side_effect = [primary_result, fallback_result]
+    result = await api.read_values(["water_outlet_temp"])
 
+    assert result == ReadResult.SUCCESS
+    assert api._data["water_outlet_temp"] == 280
+
+
+def test_fallback_used_when_primary_read_errors(api_client):
+    """A failed primary read yields to the fallback register."""
     definition = RegisterDefinition(
         1200,
         fallback=RegisterDefinition(1093),
     )
 
-    value = await api_client._read_register(definition, "slave")
+    value = api_client._decode_register(definition, None)
     if value is None and definition.fallback:
-        value = await api_client._read_register(definition.fallback, "slave")
+        value = api_client._decode_register(definition.fallback, 280)
 
     assert value == 280
-    assert mock_client.read_holding_registers.call_count == 2
 
 
-@pytest.mark.asyncio
-async def test_fallback_also_fails_returns_none(api_client, mock_client):
-    """Test that None is returned when both primary and fallback fail."""
-    mock_client.read_holding_registers.return_value = _make_modbus_error()
-
+def test_fallback_also_fails_returns_none(api_client):
+    """None is returned when both primary and fallback have no value."""
     definition = RegisterDefinition(
         1200,
         fallback=RegisterDefinition(1093),
     )
 
-    value = await api_client._read_register(definition, "slave")
+    value = api_client._decode_register(definition, None)
     if value is None and definition.fallback:
-        value = await api_client._read_register(definition.fallback, "slave")
+        value = api_client._decode_register(definition.fallback, None)
 
     assert value is None
-    assert mock_client.read_holding_registers.call_count == 2
 
 
 # --- Preflight / system_state deserialization tests ---
@@ -339,7 +457,7 @@ async def test_read_values_deserializes_system_state_on_state_0(
 ):
     """Test system_state is deserialized to 'synchronized' when state is 0."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-    mock_client.read_holding_registers.return_value = _make_modbus_result(0)
+    api._client = _FakeGateway({1094: 0})
 
     result = await api.read_values(["system_state"])
 
@@ -354,7 +472,7 @@ async def test_read_values_deserializes_system_state_on_state_2(
 ):
     """Test system_state is deserialized to 'initializing' when state is 2."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-    mock_client.read_holding_registers.return_value = _make_modbus_result(2)
+    api._client = _FakeGateway({1094: 2})
 
     result = await api.read_values(["system_state"])
 
@@ -369,7 +487,7 @@ async def test_read_values_deserializes_system_state_on_state_1(
 ):
     """Test system_state is deserialized to 'desynchronized' when state is 1."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-    mock_client.read_holding_registers.return_value = _make_modbus_result(1)
+    api._client = _FakeGateway({1094: 1})
 
     result = await api.read_values(["system_state"])
 
@@ -384,7 +502,7 @@ async def test_read_values_returns_success_on_normal_read(
 ):
     """Test read_values returns SUCCESS when gateway is synchronized."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-    mock_client.read_holding_registers.return_value = _make_modbus_result(0)
+    api._client = _FakeGateway({1094: 0})
 
     result = await api.read_values(["system_state"])
 
@@ -398,7 +516,7 @@ async def test_read_values_throttles_gateway_not_ready_logs(
 ):
     """Test that repeated gateway-not-ready warnings are throttled."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-    mock_client.read_holding_registers.return_value = _make_modbus_result(2)
+    api._client = _FakeGateway({1094: 2})
 
     # First call should log
     with caplog.at_level(logging.WARNING):
@@ -422,14 +540,15 @@ async def test_read_values_resets_throttle_state_on_recovery(
 ):
     """Test that throttle state is reset and a recovery line is logged (#356)."""
     api = _make_preflight_api_client(mock_hass, mock_client)
+    gateway = _FakeGateway({1094: 2})
+    api._client = gateway
 
     # Not ready
-    mock_client.read_holding_registers.return_value = _make_modbus_result(2)
     await api.read_values(["system_state"])
     assert api._gateway_not_ready_since is not None
 
     # Recovered
-    mock_client.read_holding_registers.return_value = _make_modbus_result(0)
+    gateway.values[1094] = 0
     with caplog.at_level(logging.WARNING):
         caplog.clear()
         await api.read_values(["system_state"])
@@ -450,12 +569,7 @@ async def test_read_values_clears_stale_value_on_sensor_error_without_fallback(
     """A 0xFFFF sensor-error with no fallback must clear the stale value (#320)."""
     api = _make_preflight_api_client(mock_hass, mock_client)
     api._data["outdoor_temp"] = 5  # stale good value
-
-    # [preflight system_state, outdoor_temp = 0xFFFF sensor error]
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_result(0xFFFF),
-    ]
+    api._client = _FakeGateway({1094: 0, 1091: 0xFFFF})
 
     result = await api.read_values(["outdoor_temp"])
 
@@ -468,18 +582,37 @@ async def test_read_values_clears_stale_value_on_sensor_error_without_fallback(
 async def test_read_values_clears_stale_value_on_read_error_without_fallback(
     _mock_ir, mock_hass, mock_client
 ):
-    """A per-register read error with no fallback must clear the stale value (#320)."""
+    """A read error outside the block ranges clears just that entity (#320).
+
+    Addresses outside the proven FC04 ranges are read one by one (FC03), so a
+    failing read stays local to its entity, exactly as upstream does.
+    """
     api = _make_preflight_api_client(mock_hass, mock_client)
-    api._data["outdoor_temp"] = 5  # stale good value
+    api._data["circuit1_thermostat"] = 21  # stale good value
+    api._client = _FakeGateway({1094: 0}, errors={1010})
 
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_error(),
-    ]
-
-    result = await api.read_values(["outdoor_temp"])
+    result = await api.read_values(["circuit1_thermostat"])
 
     assert result == ReadResult.SUCCESS
+    assert "circuit1_thermostat" not in api._data
+
+
+@patch("custom_components.hitachi_yutaki.api.modbus.ir")
+@pytest.mark.asyncio
+async def test_read_values_block_error_aborts_cycle(_mock_ir, mock_hass, mock_client):
+    """A failing block read aborts the cycle instead of reporting partial data.
+
+    The block ranges are read as one transaction, so a failed block cannot be
+    attributed to a single register: the cycle fails and is retried after a
+    reconnect, instead of publishing half-updated values.
+    """
+    api = _make_preflight_api_client(mock_hass, mock_client)
+    api._client = _FakeGateway({1094: 0}, errors={1091})
+    api._ensure_connection = AsyncMock(return_value=False)
+
+    with pytest.raises(ModbusException):
+        await api.read_values(["outdoor_temp"])
+
     assert "outdoor_temp" not in api._data
 
 
@@ -491,11 +624,7 @@ async def test_read_values_keeps_value_on_successful_read(
     """A fresh successful read overwrites the stored value (regression guard)."""
     api = _make_preflight_api_client(mock_hass, mock_client)
     api._data["outdoor_temp"] = 5  # stale value to be overwritten
-
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_result(200),  # convert_signed_16bit(200) == 200
-    ]
+    api._client = _FakeGateway({1094: 0, 1091: 200})  # convert_signed_16bit(200) == 200
 
     result = await api.read_values(["outdoor_temp"])
 
@@ -510,13 +639,7 @@ async def test_read_values_fallback_still_recovers_on_sensor_error(
 ):
     """Fallback register must still recover when primary is a 0xFFFF sensor-error."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-
-    # [preflight, primary 1200 = 0xFFFF, fallback 1093 = 350]
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_result(0xFFFF),
-        _make_modbus_result(350),
-    ]
+    api._client = _FakeGateway({1094: 0, 1200: 0xFFFF, 1093: 350})
 
     result = await api.read_values(["water_outlet_temp"])
 
@@ -532,13 +655,7 @@ async def test_read_values_clears_when_both_primary_and_fallback_error(
     """When both primary and fallback error, the stale value must be cleared (#320)."""
     api = _make_preflight_api_client(mock_hass, mock_client)
     api._data["water_outlet_temp"] = 42  # stale good value
-
-    # [preflight, primary 1200 = 0xFFFF, fallback 1093 = 0xFFFF]
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_result(0xFFFF),
-        _make_modbus_result(0xFFFF),
-    ]
+    api._client = _FakeGateway({1094: 0, 1200: 0xFFFF, 1093: 0xFFFF})
 
     result = await api.read_values(["water_outlet_temp"])
 
@@ -554,7 +671,7 @@ async def test_read_values_logs_periodic_reminder_after_5_minutes(
 ):
     """Test that a periodic reminder is logged after 5 minutes of gateway-not-ready."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-    mock_client.read_holding_registers.return_value = _make_modbus_result(2)
+    api._client = _FakeGateway({1094: 2})
 
     # First call at t=0
     mock_time.monotonic.return_value = 1000.0
@@ -693,11 +810,7 @@ async def test_read_values_filters_garbage_system_config(
     """A 0xFFFF system_config is filtered, not decoded as every capability (#404)."""
     api = _make_preflight_api_client(mock_hass, mock_client)
     api._data["system_config"] = 0x0021  # stale good value
-
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_result(0xFFFF),
-    ]
+    api._client = _FakeGateway({1094: 0, 1089: 0xFFFF})
 
     result = await api.read_values(["system_config"])
 
@@ -732,13 +845,16 @@ async def test_read_values_system_state_ffff_is_not_ready(
     """A 0xFFFF system_state (no heat pump data) is not ready, not healthy (#404)."""
     api = _make_preflight_api_client(mock_hass, mock_client)
     api._register_map = register_map
-    mock_client.read_holding_registers.return_value = _make_modbus_result(0xFFFF)
+    system_state_addr = register_map.all_registers["system_state"].address
+    gateway = _FakeGateway({system_state_addr: 0xFFFF})
+    api._client = gateway
 
     result = await api.read_values(["system_config"])
 
     assert result == ReadResult.GATEWAY_NOT_READY
     assert "system_config" not in api._data
-    assert mock_client.read_holding_registers.call_count == 1
+    # The preflight read is the only transaction of this cycle.
+    assert len(gateway.calls) == 1
     mock_ir.async_create_issue.assert_called_once()
     assert mock_ir.async_create_issue.call_args.args[2] == "no_data_warning"
 
@@ -781,23 +897,19 @@ async def test_read_values_ignores_stale_status_after_write(
 ):
     """Polls still reporting the pre-write value do not revert the entity."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-    mock_client.write_register.return_value = _make_modbus_result(0)
+    gateway = _FakeGateway({1094: 0, 1050: 0})
+    api._client = gateway
     await api.write_value("unit_power", 1)
 
-    # [preflight system_state, unit_power still 0 on the gateway]
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_result(0),
-    ]
+    # The gateway still reports the pre-write value.
     assert await api.read_values(["unit_power"]) == ReadResult.SUCCESS
     assert api._data["unit_power"] == 1
 
     # A read error in the window keeps the expected value too (not #320's clear).
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_error(),
-    ]
-    assert await api.read_values(["unit_power"]) == ReadResult.SUCCESS
+    gateway.errors.add(1050)
+    api._ensure_connection = AsyncMock(return_value=False)
+    with pytest.raises(ModbusException):
+        await api.read_values(["unit_power"])
     assert api._data["unit_power"] == 1
     assert "unit_power" in api._pending_writes
 
@@ -809,21 +921,15 @@ async def test_read_values_confirms_write_and_lifts_shadow(
 ):
     """A STATUS read equal to the written value ends the shadow."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-    mock_client.write_register.return_value = _make_modbus_result(0)
+    gateway = _FakeGateway({1094: 0, 1050: 1})
+    api._client = gateway
     await api.write_value("unit_power", 1)
 
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_result(1),
-    ]
     await api.read_values(["unit_power"])
     assert api._pending_writes == {}
 
     # From then on the gateway is the truth again (e.g. the unit turned off).
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_result(0),
-    ]
+    gateway.values[1050] = 0
     await api.read_values(["unit_power"])
     assert api._data["unit_power"] == 0
 
@@ -835,14 +941,10 @@ async def test_read_values_accepts_gateway_value_after_ttl(
 ):
     """Past the deadline an unconfirmed write yields to the gateway value."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-    mock_client.write_register.return_value = _make_modbus_result(0)
+    api._client = _FakeGateway({1094: 0, 1050: 0})
     await api.write_value("unit_power", 1)
     api._pending_writes["unit_power"] = (1, time.monotonic() - 1)
 
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_result(0),
-    ]
     await api.read_values(["unit_power"])
 
     assert api._data["unit_power"] == 0
@@ -856,7 +958,7 @@ async def test_successive_writes_last_value_wins_and_rearms_deadline(
 ):
     """On -> off on one key: the last expected value, with a later deadline."""
     api = _make_preflight_api_client(mock_hass, mock_client)
-    mock_client.write_register.return_value = _make_modbus_result(0)
+    api._client = _FakeGateway({1094: 0, 1050: 1})
     await api.write_value("unit_power", 1)
     expected, deadline = api._pending_writes["unit_power"]
     earlier = deadline - 5
@@ -869,10 +971,6 @@ async def test_successive_writes_last_value_wins_and_rearms_deadline(
     assert deadline > earlier
 
     # The first write's value is stale now, not a confirmation.
-    mock_client.read_holding_registers.side_effect = [
-        _make_modbus_result(0),
-        _make_modbus_result(1),
-    ]
     await api.read_values(["unit_power"])
     assert api._data["unit_power"] == 0
     assert "unit_power" in api._pending_writes

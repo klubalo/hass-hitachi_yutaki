@@ -104,6 +104,23 @@ class HitachiRegisterMap(ABC):
     def system_state_issues(self) -> dict[int, str]:
         """Return mapping of system state values to issue keys."""
 
+    @property
+    def input_read_ranges(self) -> tuple[tuple[int, int], ...]:
+        """Return address ranges proven readable as INPUT registers (FC04).
+
+        A register map may declare the address ranges that were verified to
+        answer block reads (function code 04) on its gateway. The client then
+        fetches those addresses in contiguous blocks instead of one request
+        per register. Every address outside the declared ranges keeps the
+        upstream behaviour: a single HOLDING register read (FC03).
+
+        The default is an empty tuple, i.e. upstream's per-register FC03 path
+        for every address. Only ranges verified on the concrete gateway are
+        declared, because an unverified function code makes the whole cycle
+        fail instead of degrading to a single bad value.
+        """
+        return ()
+
     # System configuration bit masks
 
     @property

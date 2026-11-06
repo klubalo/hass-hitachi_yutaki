@@ -193,7 +193,9 @@ def _build_control_unit_sensor_descriptions() -> tuple[
             value_fn=lambda c: (
                 None
                 if c.data.get("defrost_state_raw") is None
-                else ("defrosting" if c.data.get("defrost_state_raw") else "no_defrosting")
+                else (
+                    "defrosting" if c.data.get("defrost_state_raw") else "no_defrosting"
+                )
             ),
             entity_category=EntityCategory.DIAGNOSTIC,
             icon="mdi:snowflake-melt",

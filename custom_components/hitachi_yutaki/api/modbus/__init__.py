@@ -415,19 +415,17 @@ class ModbusApiClient(HitachiApiClient):
         return True
 
     # --- Block-read tuning (ComAp fork) ------------------------------------
-    # Address ranges proven readable as INPUT registers (FC04) in contiguous
-    # blocks on the ATW-MBS-02 gateway. These mirror the working native HA
-    # modbus config (input blocks 1050-1069, 1070-1098, 1200-1231). Addresses
-    # OUTSIDE these ranges (e.g. circuit thermostat state 1010/1021) are read
-    # individually as HOLDING registers (FC03), exactly as upstream does, so
-    # every read stays on the function code proven for that address.
-    _PROVEN_INPUT_RANGES = ((1050, 1098), (1200, 1231))
+    # The address ranges that answer block reads (FC04) are declared by the
+    # register map, because only the concrete gateway can verify them (see
+    # HitachiRegisterMap.input_read_ranges). The gen2 ATW-MBS-02 declares
+    # 1050-1098 and 1200-1231; every other variant keeps upstream's
+    # one-request-per-register FC03 path.
     _MAX_BLOCK_COUNT = 64  # registers per request (well under Modbus 125 limit)
     _MAX_BLOCK_GAP = 8  # merge into one block when the gap is at most this many
 
     def _in_input_range(self, addr: int) -> bool:
         """Return True if addr is proven readable via an input-register block."""
-        return any(lo <= addr <= hi for lo, hi in self._PROVEN_INPUT_RANGES)
+        return any(lo <= addr <= hi for lo, hi in self._register_map.input_read_ranges)
 
     def _plan_input_blocks(self, addresses: set[int]) -> list[tuple[int, int]]:
         """Group in-range addresses into (start, count) input-register blocks.
@@ -442,7 +440,10 @@ class ModbusApiClient(HitachiApiClient):
         blocks: list[tuple[int, int]] = []
         start = prev = addrs[0]
         for a in addrs[1:]:
-            if a - prev <= self._MAX_BLOCK_GAP and (a - start + 1) <= self._MAX_BLOCK_COUNT:
+            if (
+                a - prev <= self._MAX_BLOCK_GAP
+                and (a - start + 1) <= self._MAX_BLOCK_COUNT
+            ):
                 prev = a
             else:
                 blocks.append((start, prev - start + 1))
@@ -471,10 +472,8 @@ class ModbusApiClient(HitachiApiClient):
     async def _read_holding_one(self, addr: int, device_param: str) -> int | None:
         """Read a single HOLDING register (FC03). Returns raw value or None."""
         result = await self._hass.async_add_executor_job(
-            lambda a=addr, param=device_param: (
-                self._client.read_holding_registers(
-                    address=a, count=1, **{param: self._slave}
-                )
+            lambda a=addr, param=device_param: self._client.read_holding_registers(
+                address=a, count=1, **{param: self._slave}
             )
         )
         if result.isError():
@@ -503,6 +502,46 @@ class ModbusApiClient(HitachiApiClient):
         ):
             return self._SENTINEL_FILTERED
         return value
+
+    def _apply_read_values(
+        self,
+        registers_to_read: dict[str, RegisterDefinition],
+        cache: dict[int, int | None],
+    ) -> None:
+        """Store the decoded register values of this cycle in ``_data``.
+
+        A register without a fresh value (sensor error or read error) and
+        without a working fallback has its stored reading cleared, so the
+        entity goes unavailable instead of reporting a frozen value (#320).
+        """
+        for name, definition in registers_to_read.items():
+            value = self._decode_register(definition, cache.get(definition.address))
+            # Fallback on any None (read error or a sensor-error raw
+            # value such as 0xFFFF deserialized to None), but not on
+            # sentinel (sentinel = module known-absent, no point trying)
+            if value is None and definition.fallback:
+                value = self._decode_register(
+                    definition.fallback,
+                    cache.get(definition.fallback.address),
+                )
+            if self._is_shadowed_by_pending_write(name, value):
+                continue
+            if value is self._SENTINEL_FILTERED:
+                # Sensor/module unavailable — clear any stale value
+                self._data.pop(name, None)
+            elif value is not None:
+                self._data[name] = value
+            else:
+                # No fresh value: a sensor-error raw value (e.g. 0xFFFF)
+                # deserialized to None, or a read error, with no working
+                # fallback. Clear the stored reading so the entity goes
+                # unavailable instead of reporting a frozen value (#320).
+                self._data.pop(name, None)
+                _LOGGER.debug(
+                    "Clearing %s (no fresh value: sensor error or read error at %s)",
+                    name,
+                    definition.address,
+                )
 
     async def read_values(self, keys: list[str]) -> ReadResult:
         """Fetch data from the heat pump for the given keys.
@@ -547,9 +586,7 @@ class ModbusApiClient(HitachiApiClient):
                 # Plan contiguous input-register blocks; addresses outside the
                 # proven input ranges are read as individual holding registers.
                 input_blocks = self._plan_input_blocks(needed)
-                holding_addrs = sorted(
-                    a for a in needed if not self._in_input_range(a)
-                )
+                holding_addrs = sorted(a for a in needed if not self._in_input_range(a))
 
                 # raw address -> value cache for this cycle
                 cache: dict[int, int | None] = {}
@@ -652,36 +689,7 @@ class ModbusApiClient(HitachiApiClient):
                     cache[addr] = await self._read_holding_one(addr, device_param)
 
                 # --- Decode each requested register from the cache ---
-                for name, definition in registers_to_read.items():
-                    value = self._decode_register(
-                        definition, cache.get(definition.address)
-                    )
-                    # Fallback on any None (read error or a sensor-error raw
-                    # value such as 0xFFFF deserialized to None), but not on
-                    # sentinel (sentinel = module known-absent, no point trying)
-                    if value is None and definition.fallback:
-                        value = self._decode_register(
-                            definition.fallback,
-                            cache.get(definition.fallback.address),
-                        )
-                    if self._is_shadowed_by_pending_write(name, value):
-                        continue
-                    if value is self._SENTINEL_FILTERED:
-                        # Sensor/module unavailable — clear any stale value
-                        self._data.pop(name, None)
-                    elif value is not None:
-                        self._data[name] = value
-                    else:
-                        # No fresh value: a sensor-error raw value (e.g. 0xFFFF)
-                        # deserialized to None, or a read error, with no working
-                        # fallback. Clear the stored reading so the entity goes
-                        # unavailable instead of reporting a frozen value (#320).
-                        self._data.pop(name, None)
-                        _LOGGER.debug(
-                            "Clearing %s (no fresh value: sensor error or read error at %s)",
-                            name,
-                            definition.address,
-                        )
+                self._apply_read_values(registers_to_read, cache)
 
                 # Remove data for modules not declared in system_config
                 self._gate_unconfigured_modules()

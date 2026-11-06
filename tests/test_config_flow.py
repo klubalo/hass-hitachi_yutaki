@@ -1230,9 +1230,17 @@ async def test_validation_uses_real_read_result_and_deserialized_state(
     client = ModbusApiClient(hass, "test", "127.0.0.1", 502, 1, maps[variant]())
     client._client = MagicMock()
     client._client.is_socket_open.return_value = True
-    response = MagicMock(registers=[raw_state])
-    response.isError.return_value = False
-    client._client.read_holding_registers.return_value = response
+
+    def _register_response(address, count=1, **_kwargs):
+        """Answer every register read with the raw system state."""
+        response = MagicMock(registers=[raw_state] * count)
+        response.isError.return_value = False
+        return response
+
+    # The gen2 gateway is read in blocks (FC04), the other variants one
+    # register at a time (FC03); both must decode the same system state.
+    client._client.read_input_registers.side_effect = _register_response
+    client._client.read_holding_registers.side_effect = _register_response
     client.connect = AsyncMock(return_value=True)
     client.close = AsyncMock()
     client.get_model_key = AsyncMock(return_value="yutaki_s")
@@ -1257,7 +1265,12 @@ async def test_validation_uses_real_read_result_and_deserialized_state(
         assert result["errors"] == {"base": error}
         client.get_model_key.assert_not_awaited()
         client.async_get_unique_id.assert_not_awaited()
-        client._client.read_holding_registers.assert_called_once()
+        # Only the preflight read happened, no further reads once not ready.
+        reads = (
+            client._client.read_input_registers.call_count
+            + client._client.read_holding_registers.call_count
+        )
+        assert reads == 1
     else:
         assert result["step_id"] == "advanced_features"
         client.get_model_key.assert_awaited_once()
