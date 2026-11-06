@@ -37,4 +37,17 @@ def _build_dhw_switch_descriptions() -> tuple[
             get_fn=lambda api, _: api.get_dhw_boost(),
             set_fn=lambda api, _, enabled: api.set_dhw_boost(enabled),
         ),
+        # ComAp fork: high-demand mode switch (register 1079/1027) — parity with
+        # the previous switch.yutaki_control_demand_mode.
+        HitachiYutakiSwitchEntityDescription(
+            key="high_demand",
+            name="High Demand",
+            icon="mdi:water-plus",
+            condition=lambda c: (
+                c.has_dhw()
+                and "dhw_high_demand" in c.api_client.register_map.all_registers
+            ),
+            get_fn=lambda api, _: api.get_dhw_high_demand(),
+            set_fn=lambda api, _, enabled: api.set_dhw_high_demand(enabled),
+        ),
     )

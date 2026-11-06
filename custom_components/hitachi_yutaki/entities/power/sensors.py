@@ -50,6 +50,20 @@ def _build_power_sensor_descriptions(
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             value_fn=lambda c: c.data.get("electrical_energy_consumed"),
         ),
+        # ComAp fork: the heat pump's own cumulative energy counter, read
+        # directly from register 1098 (data["power_consumption"], raw kWh).
+        # Upstream computes energy from compressor current instead and leaves
+        # this raw register unused; we expose it so an existing kWh statistic
+        # (fed by a HW counter) can continue without a discontinuity.
+        HitachiYutakiSensorEntityDescription(
+            key="energy_meter",
+            translation_key="energy_meter",
+            description="Cumulative energy counter reported by the heat pump (register 1098)",
+            device_class=SensorDeviceClass.ENERGY,
+            state_class=SensorStateClass.TOTAL_INCREASING,
+            native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+            value_fn=lambda c: c.data.get("power_consumption"),
+        ),
     ]
 
     # Electricity cost sensor — only when price entity is configured

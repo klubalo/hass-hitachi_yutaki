@@ -104,4 +104,22 @@ def _build_control_unit_binary_sensor_descriptions() -> tuple[
             ),
             entity_registry_enabled_default=False,
         ),
+        # --- ComAp fork extras (parity with previous native YAML setup) ---
+        HitachiYutakiBinarySensorEntityDescription(
+            key="block_menu",
+            translation_key="block_menu",
+            icon="mdi:menu-open",
+            description="Indicates if the controller menu is locked/blocked",
+            entity_category=EntityCategory.DIAGNOSTIC,
+            value_fn=lambda coordinator: coordinator.data.get("block_menu") == 1,
+        ),
+        HitachiYutakiBinarySensorEntityDescription(
+            key="bms_alarm",
+            translation_key="bms_alarm",
+            icon="mdi:alert",
+            description="Indicates a BMS alarm reported by the unit",
+            device_class=BinarySensorDeviceClass.PROBLEM,
+            entity_category=EntityCategory.DIAGNOSTIC,
+            value_fn=lambda coordinator: coordinator.data.get("bms_alarm") == 1,
+        ),
     )
