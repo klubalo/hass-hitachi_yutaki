@@ -16,18 +16,398 @@
           "operation_state_pool_on": "Bazén – zapnuto",
           "operation_state_alarm": "Alarm",
           "operation_state_unknown": "Neznámý"
-        }
+        },
+        "name": "Operation State"
       },
       "dhw_demand_mode": {
         "state": {
           "standard": "Standard",
           "high_demand": "Vysoká poptávka"
-        }
+        },
+        "name": "DHW Demand Mode"
       },
       "defrost_state_raw": {
         "state": {
           "no_defrosting": "Neprobíhá",
           "defrosting": "Probíhá"
+        },
+        "name": "Odmrazování"
+      },
+      "outdoor_temp": {
+        "name": "Outdoor Temperature"
+      },
+      "water_inlet_temp": {
+        "name": "Water Inlet Temperature"
+      },
+      "water_outlet_temp": {
+        "name": "Water Outlet Temperature"
+      },
+      "water_outlet_2_temp": {
+        "name": "Water Outlet 2 Temperature"
+      },
+      "water_outlet_3_temp": {
+        "name": "Water Outlet 3 Temperature"
+      },
+      "water_target_temp": {
+        "name": "Corrected Target Temperature"
+      },
+      "water_flow": {
+        "name": "Water Flow"
+      },
+      "pump_speed": {
+        "name": "Pump Speed"
+      },
+      "compressor_frequency": {
+        "name": "Compressor Frequency"
+      },
+      "compressor_current": {
+        "name": "Compressor Current"
+      },
+      "compressor_cycle_time": {
+        "name": "Compressor cycle time",
+        "state": {
+          "operation_state_off": "Off"
+        }
+      },
+      "compressor_tg_gas_temp": {
+        "name": "Gas Temperature"
+      },
+      "compressor_ti_liquid_temp": {
+        "name": "Liquid Temperature"
+      },
+      "compressor_td_discharge_temp": {
+        "name": "Discharge Temperature"
+      },
+      "compressor_te_evaporator_temp": {
+        "name": "Evaporator Temperature"
+      },
+      "compressor_evi_indoor_expansion_valve_opening": {
+        "name": "Indoor Expansion Valve Opening"
+      },
+      "compressor_evo_outdoor_expansion_valve_opening": {
+        "name": "Outdoor Expansion Valve Opening"
+      },
+      "electrical_power": {
+        "name": "Electrical Power"
+      },
+      "power_consumption": {
+        "name": "Power Consumption"
+      },
+      "energy_meter": {
+        "name": "Elektroměr (počítadlo TČ)"
+      },
+      "circuit1_wireless_target_temp": {
+        "name": "Požadovaná teplota bezdrátového čidla okruhu 1"
+      },
+      "circuit1_wireless_current_temp": {
+        "name": "Aktuální teplota bezdrátového čidla okruhu 1"
+      },
+      "circuit2_wireless_target_temp": {
+        "name": "Požadovaná teplota bezdrátového čidla okruhu 2"
+      },
+      "circuit2_wireless_current_temp": {
+        "name": "Aktuální teplota bezdrátového čidla okruhu 2"
+      },
+      "outdoor_average_temp": {
+        "name": "Průměrná venkovní teplota"
+      },
+      "second_ambient_temp": {
+        "name": "Teplota 2. okruhu"
+      },
+      "second_ambient_average_temp": {
+        "name": "Průměrná teplota 2. okruhu"
+      },
+      "unit_capacity": {
+        "name": "Kapacita jednotky"
+      },
+      "mixing_valve_position": {
+        "name": "Poloha směšovacího ventilu"
+      },
+      "cause_of_stoppage": {
+        "name": "Příčina zastavení"
+      },
+      "capacity_data": {
+        "name": "Data kapacity"
+      },
+      "software_pcb": {
+        "name": "Verze softwaru (PCB)"
+      },
+      "software_lcd": {
+        "name": "Verze softwaru (LCD)"
+      },
+      "water_outlet_unit_temp": {
+        "name": "Teplota vody na výstupu jednotky"
+      },
+      "dhw_tank_upper_temp": {
+        "name": "Horní teplota nádrže TUV"
+      },
+      "dhw_tank_lower_temp": {
+        "name": "Spodní teplota nádrže TUV"
+      },
+      "dhw_wsp_temp": {
+        "name": "Teplota TUV (WSP)"
+      },
+      "dhw_setting_temp": {
+        "name": "Požadovaná teplota TUV"
+      },
+      "circuit1_room_temp": {
+        "name": "Teplota místnosti okruhu 1"
+      },
+      "circuit1_thermostat_set_temp": {
+        "name": "Požadovaná teplota termostatu okruhu 1"
+      },
+      "unit_model_name": {
+        "name": "Model jednotky"
+      },
+      "central_mode": {
+        "name": "Centrální režim"
+      },
+      "system_status_raw": {
+        "name": "Stav systému (raw)"
+      },
+      "system_config_raw": {
+        "name": "Konfigurace systému (raw)"
+      },
+      "alarm": {
+        "name": "Alarm",
+        "state": {
+          "alarm_code_0": "No Alarm",
+          "alarm_code_2": "Activation of outdoor unit safety device",
+          "alarm_code_3": "Abnormal transmission between indoor units and outdoor unit",
+          "alarm_code_4": "Abnormal transmission between outdoor unit control PCB and inverter PCB",
+          "alarm_code_5": "Phase detection signal abnormal operation code",
+          "alarm_code_6": "Excessively low or high voltage for inverter",
+          "alarm_code_7": "Decrease in discharge gas superheat",
+          "alarm_code_8": "Excessive discharge gas temperature at top of compressor",
+          "alarm_code_11": "Water inlet temperature thermistor abnormality (THMWI)",
+          "alarm_code_12": "Water outlet temperature thermistor abnormality (THMWO)",
+          "alarm_code_13": "Indoor R410A liquid pipe temperature thermistor abnormality (THML)",
+          "alarm_code_14": "Indoor R410A gas pipe temperature thermistor abnormality (THMG)",
+          "alarm_code_15": "Circuit 2 water outlet temperature thermistor abnormality (THMWO2)",
+          "alarm_code_16": "DHW temperature thermistor abnormality (THMDHW)",
+          "alarm_code_17": "Auxiliary sensor 2 abnormality (THMAUX2)",
+          "alarm_code_18": "Universal sensor abnormality",
+          "alarm_code_19": "Temperature thermistor abnormality",
+          "alarm_code_20": "Discharge gas temperature thermistor abnormality",
+          "alarm_code_21": "High pressure sensor abnormality",
+          "alarm_code_22": "Outdoor temperature thermistor abnormality (THM7)",
+          "alarm_code_23": "Discharge gas temperature thermistor abnormality (THM9)",
+          "alarm_code_24": "Evaporation temperature thermistor abnormality during heating (THM8)",
+          "alarm_code_25": "Auxiliary sensor 3 abnormality (THMAUX3)",
+          "alarm_code_26": "Power or combined power setting error between indoor and outdoor unit",
+          "alarm_code_35": "Power or combined power setting error between indoor and outdoor unit",
+          "alarm_code_36": "Power or combined power setting error between indoor and outdoor unit",
+          "alarm_code_38": "Protection circuit abnormality (outdoor unit)",
+          "alarm_code_40": "Incorrect unit controller setting",
+          "alarm_code_41": "High pressure switch overload",
+          "alarm_code_42": "Heating overload (high pressure switch must be activated)",
+          "alarm_code_45": "High pressure increase protection activation",
+          "alarm_code_47": "System protection activation against insufficient suction pressure",
+          "alarm_code_48": "Overcurrent protection activation",
+          "alarm_code_51": "Current sensor abnormal operation",
+          "alarm_code_53": "Transistor module activation",
+          "alarm_code_54": "Inverter fin temperature abnormality",
+          "alarm_code_57": "Fan motor protection abnormality (DC fan motor)",
+          "alarm_code_70": "Water flow alarm and water pump malfunction",
+          "alarm_code_72": "Water heater thermostat alarm",
+          "alarm_code_73": "Mixed circuit maximum temperature limit protection",
+          "alarm_code_74": "Unit temperature limit protection",
+          "alarm_code_75": "Anti-freeze protection by cold water inlet/outlet temperature detection",
+          "alarm_code_76": "Anti-freeze protection stop by indoor liquid temperature thermistor",
+          "alarm_code_77": "Smart wireless receiver communication fault",
+          "alarm_code_78": "RF communication fault",
+          "alarm_code_79": "Incorrect power setting",
+          "alarm_code_80": "H-LINK remote control communication fault",
+          "alarm_code_81": "Momentary power interruption or Low voltage detected",
+          "alarm_code_83": "Low pressure abnormality in hydraulic circuit",
+          "alarm_code_101": "High pressure switch activation command",
+          "alarm_code_102": "Excessive high pressure protection control activation",
+          "alarm_code_104": "Low pressure protection control activation",
+          "alarm_code_105": "Excessive low pressure difference",
+          "alarm_code_106": "Excessive discharge gas temperature",
+          "alarm_code_129": "Discharge gas pressure sensor failure",
+          "alarm_code_130": "Suction gas pressure sensor failure",
+          "alarm_code_132": "Transmission error between inverter PCB and main PCB",
+          "alarm_code_134": "Power source phase abnormality control",
+          "alarm_code_135": "Incorrect PCB setting",
+          "alarm_code_151": "Inverter voltage abnormality control",
+          "alarm_code_152": "Current sensor abnormal operation",
+          "alarm_code_153": "Inverter overcurrent protection activation (I)",
+          "alarm_code_154": "Transistor module protection activation",
+          "alarm_code_155": "Inverter fin abnormality control",
+          "alarm_code_156": "Inverter failure",
+          "alarm_code_157": "Other abnormalities",
+          "alarm_code_202": "Incorrect PC-ARF HE controller settings",
+          "alarm_code_203": "Slave PC-ARFHE stop in response to master PC-ARFHE",
+          "alarm_code_204": "Indoor unit loses communication with master PC-ARFHE",
+          "alarm_code_205": "Central alarm, no central message"
+        }
+      },
+      "secondary_compressor_discharge_temp": {
+        "name": "Secondary Compressor Discharge Temperature"
+      },
+      "secondary_compressor_suction_temp": {
+        "name": "Secondary Compressor Suction Temperature"
+      },
+      "secondary_compressor_discharge_pressure": {
+        "name": "Secondary Compressor Discharge Pressure"
+      },
+      "secondary_compressor_suction_pressure": {
+        "name": "Secondary Compressor Suction Pressure"
+      },
+      "secondary_compressor_frequency": {
+        "name": "Secondary Compressor Frequency"
+      },
+      "secondary_compressor_current": {
+        "name": "Secondary Compressor Current"
+      },
+      "cop_heating": {
+        "name": "Space Heating COP",
+        "state_attributes": {
+          "quality": {
+            "name": "Quality",
+            "state": {
+              "no_data": "No data",
+              "insufficient_data": "Insufficient data",
+              "preliminary": "Preliminary",
+              "optimal": "Optimal"
+            }
+          },
+          "measurements": {
+            "name": "Number of measurements"
+          },
+          "time_span_minutes": {
+            "name": "Measurement period"
+          }
+        }
+      },
+      "cop_cooling": {
+        "name": "Space Cooling COP",
+        "state_attributes": {
+          "quality": {
+            "name": "Quality",
+            "state": {
+              "no_data": "No data",
+              "insufficient_data": "Insufficient data",
+              "preliminary": "Preliminary",
+              "optimal": "Optimal"
+            }
+          },
+          "measurements": {
+            "name": "Number of measurements"
+          },
+          "time_span_minutes": {
+            "name": "Measurement period"
+          }
+        }
+      },
+      "cop_dhw": {
+        "name": "DHW COP",
+        "state_attributes": {
+          "quality": {
+            "name": "Quality",
+            "state": {
+              "no_data": "No data",
+              "insufficient_data": "Insufficient data",
+              "preliminary": "Preliminary",
+              "optimal": "Optimal"
+            }
+          },
+          "measurements": {
+            "name": "Number of measurements"
+          },
+          "time_span_minutes": {
+            "name": "Measurement period"
+          }
+        }
+      },
+      "cop_pool": {
+        "name": "Pool COP",
+        "state_attributes": {
+          "quality": {
+            "name": "Quality",
+            "state": {
+              "no_data": "No data",
+              "insufficient_data": "Insufficient data",
+              "preliminary": "Preliminary",
+              "optimal": "Optimal"
+            }
+          },
+          "measurements": {
+            "name": "Number of measurements"
+          },
+          "time_span_minutes": {
+            "name": "Measurement period"
+          }
+        }
+      },
+      "compressor_runtime": {
+        "name": "Compressor runtime"
+      },
+      "compressor_resttime": {
+        "name": "Compressor rest time"
+      },
+      "secondary_compressor_cycle_time": {
+        "name": "Secondary compressor cycle time"
+      },
+      "secondary_compressor_runtime": {
+        "name": "Secondary compressor runtime"
+      },
+      "secondary_compressor_resttime": {
+        "name": "Secondary compressor rest time"
+      },
+      "thermal_power_heating": {
+        "name": "Thermal Power Heating"
+      },
+      "thermal_power_cooling": {
+        "name": "Thermal Power Cooling"
+      },
+      "thermal_energy_heating_daily": {
+        "name": "Daily Thermal Energy Heating"
+      },
+      "thermal_energy_heating_total": {
+        "name": "Total Thermal Energy Heating"
+      },
+      "thermal_energy_cooling_daily": {
+        "name": "Daily Thermal Energy Cooling"
+      },
+      "thermal_energy_cooling_total": {
+        "name": "Total Thermal Energy Cooling"
+      },
+      "system_state": {
+        "name": "Gateway Sync State",
+        "state": {
+          "synchronized": "Synchronized",
+          "desynchronized": "Desynchronized",
+          "initializing": "Initializing"
+        }
+      },
+      "telemetry_status": {
+        "name": "Telemetry Status",
+        "state": {
+          "off": "Off",
+          "on": "On"
+        }
+      },
+      "refrigerant_charge_status": {
+        "name": "Refrigerant Charge Status",
+        "state": {
+          "learning": "Learning",
+          "ok": "OK",
+          "watch": "Watch",
+          "alert": "Alert"
+        }
+      },
+      "electricity_cost": {
+        "name": "Electricity Cost"
+      },
+      "compressor_cycling_status": {
+        "name": "Compressor cycling",
+        "state": {
+          "learning": "Learning",
+          "ok": "Normal",
+          "watch": "Watch",
+          "alert": "Short cycling"
         }
       }
     },
@@ -48,13 +428,15 @@
               "comfort": "Komfort"
             }
           }
-        }
+        },
+        "name": "Climate Control"
       },
       "dhw_climate": {
         "state": {
           "off": "Vypnuto",
           "heat": "Topení"
-        }
+        },
+        "name": "Termostat TUV"
       }
     },
     "water_heater": {
@@ -63,33 +445,592 @@
           "off": "Vypnuto",
           "standard": "Standard",
           "high_demand": "Vysoká poptávka"
-        }
+        },
+        "name": "DHW Control"
       }
     },
     "select": {
       "circuit1_otc_calculation_method_heating": {
-        "state": {
-          "disabled": "Vypnuto",
-          "points": "Body",
-          "gradient": "Sklon",
-          "fix": "Pevná"
-        }
+        "state": {}
       },
       "circuit2_otc_calculation_method_heating": {
-        "state": {
-          "disabled": "Vypnuto",
-          "points": "Body",
-          "gradient": "Sklon",
-          "fix": "Pevná"
-        }
+        "state": {}
       },
       "operation_mode_heat": {
         "state": {
           "heat": "Topení",
-          "cool": "Chlazení",
           "auto": "Auto"
+        },
+        "name": "Operation Mode"
+      },
+      "otc_calculation_method_heating": {
+        "state": {
+          "disabled": "Vypnuto",
+          "points": "Body",
+          "gradient": "Sklon",
+          "fix": "Pevná"
+        },
+        "name": "Heating Compensation Method"
+      },
+      "operation_mode_full": {
+        "state": {
+          "cool": "Chlazení",
+          "heat": "Heat",
+          "auto": "Auto"
+        },
+        "name": "Operation Mode"
+      },
+      "otc_calculation_method_cooling": {
+        "name": "Cooling Compensation Method",
+        "state": {
+          "disabled": "Disabled",
+          "points": "Points",
+          "fix": "Fix"
         }
       }
+    },
+    "binary_sensor": {
+      "connectivity": {
+        "name": "Connectivity"
+      },
+      "block_menu": {
+        "name": "Blokované menu"
+      },
+      "bms_alarm": {
+        "name": "Alarm BMS"
+      },
+      "defrost": {
+        "name": "Defrost"
+      },
+      "solar": {
+        "name": "Solar"
+      },
+      "pump1": {
+        "name": "Pump 1"
+      },
+      "pump2": {
+        "name": "Pump 2"
+      },
+      "pump3": {
+        "name": "Pump 3"
+      },
+      "compressor": {
+        "name": "Compressor"
+      },
+      "boiler": {
+        "name": "Boiler"
+      },
+      "dhw_heater": {
+        "name": "DHW Heater"
+      },
+      "space_heater": {
+        "name": "Space Heater"
+      },
+      "smart_function": {
+        "name": "Smart Function"
+      },
+      "compressor_running": {
+        "name": "Compressor running"
+      },
+      "secondary_compressor_running": {
+        "name": "Secondary compressor running"
+      },
+      "antilegionella_cycle": {
+        "name": "Anti-legionella cycle"
+      }
+    },
+    "switch": {
+      "power": {
+        "name": "Power"
+      },
+      "external_room_sensor": {
+        "name": "External room sensor"
+      },
+      "eco_mode": {
+        "name": "ECO Mode"
+      },
+      "boost": {
+        "name": "Boost"
+      },
+      "high_demand": {
+        "name": "High Demand"
+      }
+    },
+    "button": {
+      "antilegionella": {
+        "name": "Start Anti-legionella Cycle"
+      },
+      "reset_refrigerant_baseline": {
+        "name": "Reset Refrigerant Baseline"
+      }
+    },
+    "number": {
+      "room_temperature": {
+        "name": "Room temperature"
+      },
+      "max_flow_temp_heating_otc": {
+        "name": "Maximum Flow Temperature Heating"
+      },
+      "max_flow_temp_cooling_otc": {
+        "name": "Maximum Flow Temperature Cooling"
+      },
+      "heat_eco_offset": {
+        "name": "Heat ECO Offset"
+      },
+      "cool_eco_offset": {
+        "name": "Cool ECO Offset"
+      },
+      "eco_offset": {
+        "name": "Eco Offset"
+      },
+      "current_temp": {
+        "name": "Current Temperature"
+      },
+      "target_temp": {
+        "name": "Target Temperature"
+      },
+      "pool_current_temperature": {
+        "name": "Current Temperature"
+      },
+      "pool_target_temperature": {
+        "name": "Target Temperature"
+      },
+      "antilegionella_temp": {
+        "name": "Anti-legionella Temperature"
+      }
+    }
+  },
+  "device": {
+    "gateway": {
+      "name": "Gateway"
+    },
+    "control_unit": {
+      "name": "Control Unit"
+    },
+    "primary_compressor": {
+      "name": "Outdoor Compressor"
+    },
+    "secondary_compressor": {
+      "name": "Indoor Compressor"
+    },
+    "circuit1": {
+      "name": "Circuit 1"
+    },
+    "circuit2": {
+      "name": "Circuit 2"
+    },
+    "dhw": {
+      "name": "DHW"
+    },
+    "pool": {
+      "name": "Pool"
+    }
+  },
+  "selector": {
+    "gateway_type": {
+      "options": {
+        "modbus_atw_mbs_02": "Modbus ATW-MBS-02",
+        "modbus_hc_a_mb": "Modbus HC-A(16/64)MB (Beta)"
+      }
+    },
+    "gateway_variant": {
+      "options": {
+        "gen1": "Gen 1 (NWE/NWSE)",
+        "gen2": "Gen 2+ (NW1E, RW1E, RW2E, RW3E)"
+      }
+    },
+    "profile": {
+      "options": {
+        "yutaki_s": "Yutaki S",
+        "yutaki_s_combi": "Yutaki S Combi",
+        "yutaki_s80": "Yutaki S80",
+        "yutaki_m": "Yutaki M",
+        "yutampo_r32": "Yutampo R32",
+        "yutaki_sc_lite": "Yutaki SC Lite",
+        "ycc": "YCC"
+      }
+    },
+    "power_supply": {
+      "options": {
+        "single": "Single phase",
+        "three": "Three phase"
+      }
+    },
+    "telemetry_level": {
+      "options": {
+        "off": "😢 Off — No data sent",
+        "on": "🤩 On — Anonymized metrics help improve the integration"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Hitachi Yutaki Gateway",
+        "description": "Select the gateway type for your Hitachi Yutaki heat pump.",
+        "data": {
+          "gateway_type": "Gateway Type"
+        }
+      },
+      "atw_mbs_02_variant": {
+        "title": "Hardware Generation",
+        "description": "Select the hardware generation based on your unit's model reference suffix (on the nameplate).\n\n**Gen 1** — R410A units manufactured before ~2016.\n**Gen 2+** — R410A/R32 units manufactured ~2016 and later.\n\n[Help me identify my model]({model_decoder_url})",
+        "data": {
+          "gateway_variant": "Generation"
+        }
+      },
+      "atw_mbs_02_connection": {
+        "title": "Connection Settings",
+        "description": "Enter the connection details for your Hitachi Yutaki heat pump gateway.",
+        "data": {
+          "name": "Name",
+          "modbus_host": "Host/IP Address",
+          "modbus_port": "Port",
+          "modbus_device_id": "Modbus Device ID",
+          "scan_interval": "Polling Interval (seconds)"
+        }
+      },
+      "hc_a_mb_connection": {
+        "title": "Connection Settings",
+        "description": "Enter the connection details for your Hitachi Yutaki heat pump gateway.",
+        "data": {
+          "name": "Name",
+          "modbus_host": "Host/IP Address",
+          "modbus_port": "Port",
+          "modbus_device_id": "Modbus Device ID",
+          "unit_id": "Unit ID",
+          "scan_interval": "Polling Interval (seconds)"
+        }
+      },
+      "profile": {
+        "title": "Heat Pump Model",
+        "description": "Select your heat pump model.",
+        "data": {
+          "profile": "Heat Pump Model"
+        }
+      },
+      "sensors": {
+        "title": "Power and Sensors Configuration",
+        "description": "Configure power supply and external sensors.",
+        "data": {
+          "power_supply": "Power Supply",
+          "voltage_entity": "Voltage Sensor (Optional)",
+          "power_entity": "Power Sensor (Optional)",
+          "energy_entity": "Energy Sensor (Optional)",
+          "water_inlet_temp_entity": "Water Inlet Temperature Sensor (Optional)",
+          "water_outlet_temp_entity": "Water Outlet Temperature Sensor (Optional)",
+          "electricity_price_entity": "Electricity Price Sensor (Optional)"
+        },
+        "data_description": {
+          "electricity_price_entity": "A sensor providing the current electricity price in your currency per kWh (e.g. 0.18 for 0.18 {currency}/kWh). Enables the electricity cost sensor."
+        }
+      },
+      "advanced_features": {
+        "title": "Advanced features (beta)",
+        "description": "🧪 Preventive maintenance detectors run locally on your heat pump's own signals and warn you about a problem before it becomes a breakdown.\n\n⚠️ These detectors are in beta. Treat any alert as a hint to look closer, not as a diagnosis: it can be a false positive. Do NOT call a technician or pay for a service on the strength of an alert alone, always double-check first.\n\n🙏 Turning on anonymous telemetry (next step / integration options) helps me check how reliable these detectors are across the whole fleet and reach a stable release sooner.\n\nYou can change any of this at any time in the integration options.\n\n[Learn more about preventive maintenance]({learn_more_url})",
+        "sections": {
+          "preventive_maintenance": {
+            "name": "Preventive maintenance",
+            "description": "Enable the detectors you want to run. Each one is independent.",
+            "data": {
+              "refrigerant_detection": "Refrigerant charge monitoring (beta)",
+              "cycling_detection": "Compressor short-cycling detection (beta)"
+            },
+            "data_description": {
+              "refrigerant_detection": "Early detection of a slow refrigerant charge loss, from gas-line superheat and expansion-valve drift. Needs about two weeks of heating to learn your installation's normal behaviour. Advisory only: it does not replace the mandatory F-Gas leak-tightness inspection.",
+              "cycling_detection": "Detects a compressor that starts and stops too often in space heating, which wears it out and costs efficiency. Usually points at an oversized unit, a missing buffer volume, or a heating curve set too high. Needs three days of heating to reach a verdict."
+            }
+          }
+        }
+      },
+      "repair": {
+        "title": "Repair Hitachi Yutaki Configuration",
+        "description": "Your Hitachi Yutaki integration is missing required configuration parameters. Please select the missing parameters to continue.",
+        "data": {
+          "gateway_type": "Gateway Type",
+          "profile": "Heat Pump Profile"
+        }
+      },
+      "telemetry": {
+        "title": "Help Improve This Integration",
+        "description": "I develop and test on a single heat pump model. For all others, I'm working blind — your anonymous data helps me build realistic tests, catch regressions, and develop new features. No personal information is ever collected.\n\n[Learn more about telemetry]({learn_more_url})",
+        "data": {
+          "telemetry_level": "Anonymous telemetry"
+        }
+      },
+      "fleet_ping": {
+        "title": "Anonymous fleet ping",
+        "description": "Separate from telemetry: once a day, the integration sends a tiny anonymous payload so I know how many installations are active and which hardware they use. That's what lets me prioritize work and decide when an old Home Assistant version can be dropped.\n\nWhat is sent: the integration and Home Assistant versions, the climate zone, and for each heat pump its model, gateway and capabilities. No identifier, no location, no measurement. The aggregated results are public: [fleet stats]({stats_url}).\n\n[Learn more about the fleet ping]({learn_more_url})",
+        "data": {
+          "fleet_ping": "Send the anonymous fleet ping"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the gateway. Please check the host and port.",
+      "invalid_slave": "Invalid Modbus slave ID. Please check the ID and try again.",
+      "modbus_error": "A Modbus error occurred. Check the logs for more details.",
+      "invalid_central_control_mode": "The gateway must be in 'Central' control mode. Please change it in the gateway settings.",
+      "unknown": "An unknown error occurred. Please check the logs.",
+      "system_initializing": "The Hitachi Yutaki gateway is initializing. Please wait a moment and try again.",
+      "desync_error": "The gateway is out of sync with the heat pump. Ensure the heat pump is powered on and the connection between the two devices is correct.",
+      "gateway_not_ready": "The gateway is reachable but not ready (still initializing, or out of sync with the heat pump). This is normal for a few minutes right after powering on the gateway. If it persists, check the H-LINK wiring (terminals 1-2 on the indoor unit PCB, 0.75 mm² shielded twisted pair) and see the project's troubleshooting guide."
+    }
+  },
+  "config": {
+    "step": {
+      "user": {
+        "title": "Hitachi Yutaki Gateway",
+        "description": "Select the gateway type for your Hitachi Yutaki heat pump.",
+        "data": {
+          "gateway_type": "Gateway Type"
+        }
+      },
+      "atw_mbs_02_variant": {
+        "title": "Hardware Generation",
+        "description": "Auto-detection suggests: **{detected_variant}**. Verify using your unit's model reference suffix (on the nameplate).\n\n**Gen 1** — R410A units manufactured before ~2016.\n**Gen 2+** — R410A/R32 units manufactured ~2016 and later.\n\n[Help me identify my model]({model_decoder_url})",
+        "data": {
+          "gateway_variant": "Generation"
+        }
+      },
+      "atw_mbs_02_connection": {
+        "title": "Connection Settings",
+        "description": "Enter the connection details for your Hitachi Yutaki heat pump gateway.",
+        "data": {
+          "name": "Name",
+          "modbus_host": "Host/IP Address",
+          "modbus_port": "Port",
+          "modbus_device_id": "Modbus Device ID",
+          "scan_interval": "Polling Interval (seconds)"
+        }
+      },
+      "hc_a_mb_connection": {
+        "title": "Connection Settings",
+        "description": "Enter the connection details for your Hitachi Yutaki heat pump gateway.",
+        "data": {
+          "name": "Name",
+          "modbus_host": "Host/IP Address",
+          "modbus_port": "Port",
+          "modbus_device_id": "Modbus Device ID",
+          "unit_id": "Unit ID",
+          "scan_interval": "Polling Interval (seconds)"
+        }
+      },
+      "profile": {
+        "title": "Heat Pump Model",
+        "description": "Select your heat pump model. The integration will try to auto-detect it, but you can change it manually if needed.",
+        "data": {
+          "profile": "Heat Pump Model"
+        }
+      },
+      "power": {
+        "title": "Power Configuration",
+        "description": "Configure power and external temperature sensors.",
+        "data": {
+          "power_supply": "Power Supply",
+          "voltage_entity": "Voltage Sensor (Optional)",
+          "power_entity": "Power Sensor (Optional)",
+          "energy_entity": "Energy Sensor (Optional)",
+          "water_inlet_temp_entity": "Water Inlet Temperature Sensor (Optional)",
+          "water_outlet_temp_entity": "Water Outlet Temperature Sensor (Optional)",
+          "electricity_price_entity": "Electricity Price Sensor (Optional)"
+        },
+        "data_description": {
+          "electricity_price_entity": "A sensor providing the current electricity price in your currency per kWh (e.g. 0.18 for 0.18 {currency}/kWh). Enables the electricity cost sensor."
+        }
+      },
+      "advanced_features": {
+        "title": "Advanced features (beta)",
+        "description": "🧪 Preventive maintenance detectors run locally on your heat pump's own signals and warn you about a problem before it becomes a breakdown.\n\n⚠️ These detectors are in beta. Treat any alert as a hint to look closer, not as a diagnosis: it can be a false positive. Do NOT call a technician or pay for a service on the strength of an alert alone, always double-check first.\n\n🙏 Turning on anonymous telemetry (next step / integration options) helps me check how reliable these detectors are across the whole fleet and reach a stable release sooner.\n\nYou can change any of this at any time in the integration options.\n\n[Learn more about preventive maintenance]({learn_more_url})",
+        "sections": {
+          "preventive_maintenance": {
+            "name": "Preventive maintenance",
+            "description": "Enable the detectors you want to run. Each one is independent.",
+            "data": {
+              "refrigerant_detection": "Refrigerant charge monitoring (beta)",
+              "cycling_detection": "Compressor short-cycling detection (beta)"
+            },
+            "data_description": {
+              "refrigerant_detection": "Early detection of a slow refrigerant charge loss, from gas-line superheat and expansion-valve drift. Needs about two weeks of heating to learn your installation's normal behaviour. Advisory only: it does not replace the mandatory F-Gas leak-tightness inspection.",
+              "cycling_detection": "Detects a compressor that starts and stops too often in space heating, which wears it out and costs efficiency. Usually points at an oversized unit, a missing buffer volume, or a heating curve set too high. Needs three days of heating to reach a verdict."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the gateway. Please check the host and port.",
+      "invalid_slave": "Invalid Modbus slave ID. Please check the ID and try again.",
+      "modbus_error": "A Modbus error occurred. Check the logs for more details.",
+      "invalid_central_control_mode": "The gateway must be in 'Central' control mode. Please change it in the gateway settings.",
+      "unknown": "An unknown error occurred. Please check the logs.",
+      "system_initializing": "The Hitachi Yutaki gateway is initializing. Please wait a moment and try again.",
+      "desync_error": "The gateway is out of sync with the heat pump. Ensure the heat pump is powered on and the connection between the two devices is correct.",
+      "gateway_not_ready": "The gateway is reachable but not ready (still initializing, or out of sync with the heat pump). This is normal for a few minutes right after powering on the gateway. If it persists, check the H-LINK wiring (terminals 1-2 on the indoor unit PCB, 0.75 mm² shielded twisted pair) and see the project's troubleshooting guide.",
+      "outdoor_cycle_in_use": "Another unit already configured on this gateway uses the same outdoor refrigerant cycle. Two units on one cycle would read and control the same outdoor unit. Check the refrigerant cycle address (DSW) of this unit, then try again."
+    },
+    "abort": {
+      "already_configured": "This Hitachi Yutaki gateway is already configured.",
+      "unknown_gateway": "Unknown gateway type. Please reconfigure the integration."
+    }
+  },
+  "services": {
+    "set_room_temperature": {
+      "name": "Set room temperature",
+      "description": "Write the measured room temperature to the heat pump, like the circuit's Room temperature number. The heat pump regulates on it when the circuit's External room sensor switch is on.",
+      "fields": {
+        "temperature": {
+          "name": "Temperature",
+          "description": "The measured room temperature in degrees Celsius."
+        }
+      }
+    }
+  },
+  "issues": {
+    "desync_warning": {
+      "title": "Hitachi Gateway Desynchronized",
+      "description": "The Hitachi gateway has lost synchronization with the heat pump for over 3 minutes. The entities will be unavailable until the connection is restored.\n\n**To resolve this:**\n1. Check the physical connection between the gateway and the heat pump.\n2. Ensure the whole system is powered on and connected: indoor unit, outdoor unit and gateway, with the H-LINK cable in place.\n3. Restart the heat pump and the gateway if the issue persists."
+    },
+    "no_data_warning": {
+      "title": "Hitachi gateway receives no heat pump data",
+      "description": "The Hitachi gateway answers, but every value it returns is empty (0xFFFF): it is not receiving any data from the heat pump. The entities will be unavailable until it does.\n\n**To resolve this:**\n1. Ensure the whole system is powered on and connected: indoor unit, outdoor unit and gateway.\n2. Check the H-LINK cable between the gateway and the heat pump (terminals 1-2 on the indoor unit PCB).\n3. Restart the heat pump and the gateway if the issue persists."
+    },
+    "connection_error": {
+      "title": "Hitachi Gateway Unreachable",
+      "description": "The integration could not connect to the Hitachi Yutaki gateway. The entities will be unavailable until the connection is restored.\n\n**To resolve this:**\n1. Check if the gateway is powered on and connected to the network.\n2. Verify that the IP address and port configured in Home Assistant are correct."
+    },
+    "unit_not_found": {
+      "title": "Heat pump unit not found on the gateway: {name}",
+      "description": "The unit configured as **{name}** (outdoor refrigerant cycle {outdoor_cycle}, indoor address {indoor_address}) is not listed in the gateway unit table. Its entities stay unavailable rather than showing the data of another unit.\n\nThe gateway lists units in their address order, so a unit that was off or disconnected while the gateway started can shift the others.\n\n**To resolve this:**\n1. Check that this unit is powered on and connected to the H-LINK bus.\n2. Restart the gateway with every unit powered on, then wait a few minutes.\n3. If the unit's refrigerant cycle address (DSW) was changed, remove this entry and add the unit again.\n\nSetup retries on its own, and this issue clears once the unit is found."
+    },
+    "unit_duplicate": {
+      "title": "Two entries point to the same heat pump unit: {name}",
+      "description": "**{name}** and **{other}** both point to the unit on outdoor refrigerant cycle {outdoor_cycle}, indoor address {indoor_address}. **{name}** is not set up, so that one unit is not read and controlled twice.\n\n**To resolve this:** remove the entry that does not match a real unit. This issue clears once only one entry points to the unit."
+    },
+    "refrigerant_charge_alert": {
+      "title": "Possible Refrigerant Charge Loss",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Refrigerant circuit serviced?",
+            "description": "For several days the Refrigerant Charge Status has stayed at **Alert**: gas-line superheat and the expansion-valve opening have both drifted up from the learned baseline, the classic signature of a slow refrigerant loss.\n\nThis is an **advisory** based on continuous monitoring of your own operating data. It **complements** and does **not** replace the mandatory periodic leak-tightness inspection by a certified technician. Consider scheduling a leak-tightness check with your installer. The warning clears automatically when readings recover.\n\nConfirm below only if a certified technician has inspected or serviced the refrigerant circuit (leak check, top-up, expansion-valve service). This resets the detection baseline: the detector returns to **learning** and needs about 2 weeks of heating operation to learn a new reference. This is the same action as the **Reset Refrigerant Baseline** button."
+          }
+        },
+        "abort": {
+          "entry_not_found": "The Hitachi Yutaki unit this repair was created for is no longer configured. The repair has been removed."
+        }
+      }
+    },
+    "refrigerant_charge_alert_stale": {
+      "title": "Possible Refrigerant Charge Loss",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Refrigerant circuit serviced?",
+            "description": "For several days the Refrigerant Charge Status has stayed at **Alert**: gas-line superheat and the expansion-valve opening have both drifted up from the learned baseline, the classic signature of a slow refrigerant loss.\n\n**Note: this verdict is based on stale data.** The last day with qualifying heating operation was **{last_valid_day}**, {days_since_valid_data} days ago, typically because the heating season has ended. A slow refrigerant loss does not repair itself, so this alert is kept on purpose and will not clear until heating resumes or you confirm the circuit was serviced. Consider scheduling a leak-tightness check with your installer before the next heating season.\n\nConfirm below only if a certified technician has inspected or serviced the refrigerant circuit (leak check, top-up, expansion-valve service). This resets the detection baseline: the detector returns to **learning** and needs about 2 weeks of heating operation to learn a new reference. This is the same action as the **Reset Refrigerant Baseline** button."
+          }
+        },
+        "abort": {
+          "entry_not_found": "The Hitachi Yutaki unit this repair was created for is no longer configured. The repair has been removed."
+        }
+      }
+    },
+    "initializing_warning": {
+      "title": "Hitachi Gateway Initializing",
+      "description": "The Hitachi Yutaki gateway is currently initializing. This is normal after a restart and should only take a few minutes. If this warning persists, please try restarting the gateway."
+    },
+    "missing_config": {
+      "title": "Hitachi Yutaki Configuration Incomplete",
+      "description": "Your Hitachi Yutaki integration is missing required configuration parameters (gateway type and/or heat pump profile). The integration cannot be set up until these parameters are configured.\n\n**To resolve this:**\n1. Go to Settings > Devices & Services > Hitachi Yutaki\n2. Click on the integration and select Configure\n3. Select the missing parameters (gateway type and heat pump profile)\n4. Save the configuration"
+    },
+    "enable_telemetry": {
+      "title": "Help Improve Hitachi Yutaki",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Help Improve This Integration",
+            "description": "I develop and test on a single heat pump model. For all others, I'm working blind — your anonymous data helps me build realistic tests, catch regressions, and develop new features. No personal information is ever collected. You can change this at any time in the integration options.\n\n[Learn more about telemetry]({learn_more_url})",
+            "data": {
+              "telemetry_level": "Anonymous telemetry"
+            }
+          }
+        },
+        "abort": {
+          "entry_not_found": "The Hitachi Yutaki unit this repair was created for is no longer configured. The repair has been removed."
+        }
+      }
+    },
+    "fleet_ping_notice": {
+      "title": "Anonymous fleet ping is on",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Anonymous fleet ping",
+            "description": "Separate from telemetry: once a day, the integration sends a tiny anonymous payload so I know how many installations are active and which hardware they use. That's what lets me prioritize work and decide when an old Home Assistant version can be dropped.\n\nWhat is sent: the integration and Home Assistant versions, the climate zone, and for each heat pump its model, gateway and capabilities. No identifier, no location, no measurement. The aggregated results are public: [fleet stats]({stats_url}).\n\nIt is on by default. Keep it on, or turn it off below. You can change this at any time in the integration options.\n\n[Learn more about the fleet ping]({learn_more_url})",
+            "data": {
+              "fleet_ping": "Send the anonymous fleet ping"
+            }
+          }
+        },
+        "abort": {
+          "entry_not_found": "The Hitachi Yutaki unit this repair was created for is no longer configured. The repair has been removed."
+        }
+      }
+    },
+    "external_room_sensor_notice": {
+      "title": "No room thermostat on the heat pump",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Room regulation",
+            "description": "The heat pump reports no room thermostat: it regulates on its water law (outdoor temperature compensation) and ignores the room temperature.\n\n- You regulate by the water law, or a third-party thermostat is wired to the unit's demand input: nothing to do.\n- You want Home Assistant to regulate on the room temperature: turn on the circuit's **External room sensor** switch, then keep its **Room temperature** up to date, by hand or with an automation from a temperature sensor (the `hitachi_yutaki.set_room_temperature` action does the same). Turning the switch on seeds the room temperature with the setpoint, so the unit stays idle until you feed it.\n\n[Learn more about room regulation]({learn_more_url})"
+          }
+        },
+        "abort": {
+          "entry_not_found": "The Hitachi Yutaki unit this notice was created for is no longer configured. The notice has been removed."
+        }
+      }
+    },
+    "enable_refrigerant_detection": {
+      "title": "Try refrigerant charge monitoring (beta)",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Advanced features (beta)",
+            "description": "🧪 Enable experimental early detection of a slow refrigerant charge loss, computed locally from your compressor signals.\n\n⚠️ This feature is in beta and currently rests on very little validation data. It will only be considered stable after it has been checked across a full winter heating season. Treat any alert as a hint to look closer, not as a diagnosis: it can be a false positive. Do NOT call a technician or pay for a service on the strength of an alert alone, always double-check first. It is advisory and does not replace the mandatory F-Gas leak-tightness inspection.\n\n🙏 Turning on anonymous telemetry (next step / integration options) helps me check the detector's reliability across the whole fleet and reach a stable release sooner.\n\nYou can change this at any time in the integration options.\n\n[Learn more about refrigerant monitoring]({learn_more_url})",
+            "data": {
+              "refrigerant_detection": "Enable refrigerant charge monitoring (beta)"
+            }
+          }
+        },
+        "abort": {
+          "entry_not_found": "The Hitachi Yutaki unit this repair was created for is no longer configured. The repair has been removed."
+        }
+      }
+    },
+    "enable_energy_cost": {
+      "title": "Track Your Heat Pump's Electricity Cost",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Electricity Cost Tracking",
+            "description": "You can now track the electricity cost of your heat pump. Provide a sensor that exposes the current electricity price in your currency per kWh, and the integration will compute a cumulative cost sensor.\n\nYou can change this at any time in the integration options.",
+            "data": {
+              "electricity_price_entity": "Electricity Price Sensor"
+            },
+            "data_description": {
+              "electricity_price_entity": "A sensor providing the current electricity price in your currency per kWh (e.g. 0.18 for 0.18 {currency}/kWh)."
+            }
+          }
+        },
+        "abort": {
+          "entry_not_found": "The Hitachi Yutaki unit this repair was created for is no longer configured. The repair has been removed."
+        }
+      }
+    },
+    "compressor_short_cycling": {
+      "title": "Compressor is short cycling",
+      "description": "🧪 Beta detector. Your compressor has been starting and stopping unusually often in space heating for several days: too many starts per hour combined with a cycle period under {period} minutes.\n\nShort cycling wears the compressor and costs seasonal efficiency. The usual causes, in decreasing order of likelihood on this fleet:\n\n- **A heating curve set too high.** The steeper the curve, the more the installation cycles: this is the strongest correlation measured across the fleet. Lowering your flow temperature is the first thing to try, and it costs nothing.\n- **Too little buffer volume** for the unit's minimum output.\n- **An oversized unit** for the actual heat demand. Units that cycle are typically already pinned at their minimum compressor frequency, so there is no modulation margin left to recover.\n\nThis is advisory: the integration cannot tell these apart on its own. The alert clears by itself once the cycling stops."
     }
   }
 }

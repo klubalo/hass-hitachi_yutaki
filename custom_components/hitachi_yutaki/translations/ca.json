@@ -601,6 +601,88 @@
           "watch": "Vigilància",
           "alert": "Cicles curts"
         }
+      },
+      "energy_meter": {
+        "name": "Energy Meter (HP counter)"
+      },
+      "circuit1_wireless_target_temp": {
+        "name": "Circuit 1 Wireless Target Temperature"
+      },
+      "circuit1_wireless_current_temp": {
+        "name": "Circuit 1 Wireless Current Temperature"
+      },
+      "circuit2_wireless_target_temp": {
+        "name": "Circuit 2 Wireless Target Temperature"
+      },
+      "circuit2_wireless_current_temp": {
+        "name": "Circuit 2 Wireless Current Temperature"
+      },
+      "outdoor_average_temp": {
+        "name": "Outdoor Average Temperature"
+      },
+      "second_ambient_temp": {
+        "name": "Second Ambient Temperature"
+      },
+      "second_ambient_average_temp": {
+        "name": "Second Ambient Average Temperature"
+      },
+      "unit_capacity": {
+        "name": "Unit Capacity"
+      },
+      "mixing_valve_position": {
+        "name": "Mixing Valve Position"
+      },
+      "cause_of_stoppage": {
+        "name": "Cause of Stoppage"
+      },
+      "capacity_data": {
+        "name": "Capacity Data"
+      },
+      "defrost_state_raw": {
+        "name": "Defrosting",
+        "state": {
+          "no_defrosting": "No defrosting",
+          "defrosting": "Defrosting"
+        }
+      },
+      "software_pcb": {
+        "name": "Software Version (PCB)"
+      },
+      "software_lcd": {
+        "name": "Software Version (LCD)"
+      },
+      "water_outlet_unit_temp": {
+        "name": "Water Outlet Temperature (unit)"
+      },
+      "dhw_tank_upper_temp": {
+        "name": "DHW Tank Upper Temperature"
+      },
+      "dhw_tank_lower_temp": {
+        "name": "DHW Tank Lower Temperature"
+      },
+      "dhw_wsp_temp": {
+        "name": "DHW Temperature (WSP)"
+      },
+      "dhw_setting_temp": {
+        "name": "DHW Setpoint Temperature"
+      },
+      "circuit1_room_temp": {
+        "name": "Circuit 1 Room Temperature"
+      },
+      "circuit1_thermostat_set_temp": {
+        "name": "Circuit 1 Thermostat Setpoint"
+      },
+      "unit_model_name": {
+        "name": "Unit Model"
+      },
+      "central_mode": {
+        "name": "Central Mode"
+      },
+      "system_status_raw": {
+        "name": "System Status (raw)"
+      },
+      "system_config_raw": {
+        "name": "System Configuration (raw)"
       }
     },
     "binary_sensor": {
@@ -645,6 +727,12 @@
       },
       "antilegionella_cycle": {
         "name": "Cicle antilegionel·la"
+      },
+      "block_menu": {
+        "name": "Menu Blocked"
+      },
+      "bms_alarm": {
+        "name": "BMS Alarm"
       }
     },
     "select": {
@@ -759,6 +847,13 @@
               "comfort": "Confort"
             }
           }
+        }
+      },
+      "dhw_climate": {
+        "name": "DHW Thermostat",
+        "state": {
+          "off": "Off",
+          "heat": "Heat"
         }
       }
     },
